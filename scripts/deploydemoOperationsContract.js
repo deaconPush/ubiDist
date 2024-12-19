@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const { generatePrivateKey, generateWallet } = require('./generateAddress');
+const { generatePrivateKey, generateWallet } = require('../utils/generateAddress');
 
 async function main() {
     const demoOperationsContract = await ethers.getContractFactory("demoOperations");
