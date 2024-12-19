@@ -15,7 +15,6 @@ contract demoOperations {
     }
 
     function get() public view returns (uint256) {
-        console.log("variable is ", variable);
         return variable;
     }
 
@@ -25,7 +24,7 @@ contract demoOperations {
     }
 
     function privateFunction() private pure  {
-        console.log("privateFunction is called");
+        console.log("privateFunction was called");
         // pure functions do not read from or write to the state.
         //  writing to the state incurs gas costs, as it involves making changes to the blockchain
         // This function can only be called from this contract+
@@ -33,7 +32,7 @@ contract demoOperations {
     }
 
     function internalFunction() internal pure {
-        console.log("internalFunction is called");
+        console.log("internalFunction was called");
         // This function can be called from this contract or contracts that derive from it.
     }
 
