@@ -14,7 +14,9 @@ async function main() {
 
     const wallet = generateWallet(generatePrivateKey());
 
-    await demoOperations.createAccount(wallet.address, 1000);
+    await demoOperations.createAccount(wallet.address,"Juan", 1000);
+
+    await demoOperations.createCommunity();
 }
 
 main()
