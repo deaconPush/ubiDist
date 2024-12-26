@@ -58,6 +58,7 @@ function _getPublicKey(_privateKey) {
   }
 
   function storeWalletFile() {
-    const wallet = generateWalletFirstAccount();
+    const wallet = generateWallet();
     writeFileSync("wallet.json", JSON.stringify(wallet));
   }
+  
