@@ -2,7 +2,7 @@ const { ethers } = require("hardhat");
 const { generatePrivateKey, generateWallet } = require('../utils/generateAddress');
 
 async function main() {
-    const demoOperationsContract = await ethers.getContractFactory("demoOperations");
+    const demoOperationsContract = await ethers.getContractFactory("DemoOperations");
     const demoOperations = await demoOperationsContract.deploy();
 
     await demoOperations.set(5);
