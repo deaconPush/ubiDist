@@ -1,12 +1,11 @@
 const { ethers } = require("hardhat");
  
 async function main() {
-
- const HelloWorldContract = await ethers.getContractFactory("HelloWorld");
- const helloWorld = await HelloWorldContract.deploy();
-
-const resp = await helloWorld.getMessage();
-console.log('Get message response', resp)
+  const HelloWorldContract = await ethers.getContractFactory("HelloWorld");
+  const helloWorld = await HelloWorldContract.deploy();
+  
+  const resp = await helloWorld.getMessage();
+  console.log('Get message response', resp)
 }
 
 main()
