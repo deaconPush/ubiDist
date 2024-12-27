@@ -29,7 +29,7 @@ contract Increment {
         counter.number -= 1;
     }
     
-    function getCounter() public view returns (uint256) {
+    function getCounter() external view returns (uint256) {
         return counter.number;
     }
 }
