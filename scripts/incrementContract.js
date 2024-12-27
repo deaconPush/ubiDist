@@ -2,25 +2,22 @@ const hre = require("hardhat");
 
 async function main() {
 const [owner, otherAccount] = await hre.ethers.getSigners();
-
-console.log("address of owner: ", owner.address);
-console.log("address of otherAccount: ", otherAccount.address);
-
 const incrementContractFactory = await hre.ethers.getContractFactory("Increment");
-const incrementContractAddress = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+// retrieve the contract address from running the ignition script for the contract
+const incrementContractAddress = "";
 const incrementContract = incrementContractFactory.attach(incrementContractAddress);
-
 // connect to the contract with different accounts
-// await incrementContract.connect(owner).increment();
-// await incrementContract.connect(owner).increment();
-
+await incrementContract.connect(owner).increment();
 // this will fail because the other account is not the owner of the contract
-// await incrementContract.connect(otherAccount).decrement();
-
-// The counter value should be 1 instead of 0
-let counterValue = await incrementContract.get();
-
-console.log("Counter value: ", counterValue);
+try {
+  await incrementContract.connect(otherAccount).increment();
+} catch (error) {
+  console.error("Failed to increment the counter from account different from the owner");
+}
+// The counter value should be 6 instead of 7 because the other account is not the owner of the contract 
+// account different from the owner can read the counter value
+const counterValueFromOtherAccount = await incrementContract.connect(otherAccount).getCounter();
+console.log("Counter value from other account: ", counterValueFromOtherAccount.toString());
 }
 
 main()

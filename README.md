@@ -34,3 +34,7 @@ yarn hardhat node
 yarn hardhat ignition deploy ignition/modules/Rocket.js --network localhost
 ```
  
+ * Run a script to interact with the deployed contract
+```
+ yarn hardhat run scripts/<script-file> --network localhost
+ ```
