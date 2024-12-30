@@ -20,7 +20,7 @@ async function main() {
     // check proposal object    
     const proposal = await votingProposalContract.getCurrentProposal();
     console.log("current state of proposal: ", proposal.current_state ? "passed" : "rejected");
-    console.log("is the proposal closed? ", proposal.is_active ? "yes" : "no");
+    console.log("is the proposal closed? ", proposal.is_active ? "no" : "yes");
 }
 
 main()
