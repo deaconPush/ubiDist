@@ -1,79 +1,80 @@
 <script>
-  import logo from './assets/images/logo-universal.png'
-  import {Greet} from '../wailsjs/go/main/App.js'
+  import { GetRandomImageUrl } from "../wailsjs/go/main/App.js";
+  import { GetBreedList } from "../wailsjs/go/main/App.js";
+  import { GetImageUrlsByBreed } from "../wailsjs/go/main/App.js";
 
-  let resultText = "Please enter your name below 👇"
-  let name
+  let randomImageUrl = "";
+  let breeds = [];
+  let photos = [];
+  let selectedBreed;
+  let showRandomPhoto = false;
+  let showBreedPhotos = false;
 
-  function greet() {
-    Greet(name).then(result => resultText = result)
+  function init() {
+    getBreedList();
+  }
+
+  init();
+
+  function getRandomImageUrl() {
+    showRandomPhoto = false;
+    showBreedPhotos = false;
+    GetRandomImageUrl().then((result) => (randomImageUrl = result));
+    showRandomPhoto = true;
+  }
+
+  function getBreedList() {
+    GetBreedList().then((result) => (breeds = result));
+  }
+
+  function getImageUrlsByBreed() {
+    init();
+    showRandomPhoto = false;
+    showBreedPhotos = false;
+    GetImageUrlsByBreed(selectedBreed).then((result) => (photos = result));
+    showBreedPhotos = true;
   }
 </script>
 
-<main>
-  <img alt="Wails logo" id="logo" src="{logo}">
-  <div class="result" id="result">{resultText}</div>
-  <div class="input-box" id="input">
-    <input autocomplete="off" bind:value={name} class="input" id="name" type="text"/>
-    <button class="btn" on:click={greet}>Greet</button>
-  </div>
-</main>
+<h3>Dogs API</h3>
+<div>
+  <button class="btn" on:click={getRandomImageUrl}>
+    Fetch a dog randomly
+  </button>
+  Click on down arrow to select a breed
+  <select bind:value={selectedBreed}>
+    {#each breeds as breed}
+      <option value={breed}>
+        {breed}
+      </option>
+    {/each}
+  </select>
+  <button class="btn" on:click={getImageUrlsByBreed}>
+    Fetch by this breed
+  </button>
+</div>
+<br />
+{#if showRandomPhoto}
+  <img id="random-photo" src={randomImageUrl} alt="No dog found" />
+{/if}
+{#if showBreedPhotos}
+  {#each photos as photo}
+    <img id="breed-photos" src={photo} alt="No dog found" />
+  {/each}
+{/if}
 
 <style>
-
-  #logo {
-    display: block;
-    width: 50%;
-    height: 50%;
-    margin: auto;
-    padding: 10% 0 0;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    background-origin: content-box;
+  #random-photo {
+    width: 600px;
+    height: auto;
   }
 
-  .result {
-    height: 20px;
-    line-height: 20px;
-    margin: 1.5rem auto;
+  #breed-photos {
+    width: 300px;
+    height: auto;
   }
 
-  .input-box .btn {
-    width: 60px;
-    height: 30px;
-    line-height: 30px;
-    border-radius: 3px;
-    border: none;
-    margin: 0 0 0 20px;
-    padding: 0 8px;
-    cursor: pointer;
+  .btn:focus {
+    border-width: 3px;
   }
-
-  .input-box .btn:hover {
-    background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%);
-    color: #333333;
-  }
-
-  .input-box .input {
-    border: none;
-    border-radius: 3px;
-    outline: none;
-    height: 30px;
-    line-height: 30px;
-    padding: 0 10px;
-    background-color: rgba(240, 240, 240, 1);
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .input-box .input:hover {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
-  .input-box .input:focus {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
 </style>

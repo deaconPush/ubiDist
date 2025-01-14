@@ -42,12 +42,8 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
-}
 
-func (a *App) getRandomImageUrl() string {
+func (a *App) GetRandomImageUrl() string {
 	resp, err := http.Get("https://dog.ceo/api/breeds/image/random")
 	if err != nil {
 		log.Fatal(err)
