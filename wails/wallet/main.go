@@ -1,16 +1,18 @@
 package main
 
-import (
-	"embed"
-)
+// import (
+// 	"embed"
+// )
 
-//go:embed all:frontend/dist
-var assets embed.FS
+// //go:embed all:frontend/dist
+// //var assets embed.FS
 
 func main() {
 	// Create an instance of the app structure
 	//app := NewApp()
 	getBalance("http://127.0.0.1:8545/", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+	getGasPrice("http://127.0.0.1:8545/")
+	getTransactionCount("http://127.0.0.1:8545/", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
 
 	// Create application with options
 	// err := wails.Run(&options.App{
