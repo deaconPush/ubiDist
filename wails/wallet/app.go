@@ -17,6 +17,13 @@ type App struct {
 	ctx context.Context
 }
 
+type RPCPayload struct {
+	Jsonrpc string        `json:"jsonrpc"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+	ID      string        `json:"id"`
+}
+
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
@@ -28,24 +35,41 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func getBalance(provider string, address string) string {
-	payload := map[string]interface{}{
-		"jsonrpc": "2.0",
-		"method":  "eth_getBalance",
-		"params":  []interface{}{address, "latest"},
-		"id":      uuid.New().String(),
+func getGasPrice(provider string) string {
+	payload := RPCPayload{
+		Jsonrpc: "2.0",
+		Method:  "eth_gasPrice",
+		Params:  []interface{}{},
+		ID:      uuid.New().String(),
 	}
 
+	response := sendRPCRequest(payload, provider)
+	gasPriceHex := response["result"].(string)
+	return gasPriceHex
+}
+
+func getTransactionCount(provider string, address string) string {
+	payload := RPCPayload{
+		Jsonrpc: "2.0",
+		Method:  "eth_getTransactionCount",
+		Params:  []interface{}{address, "latest"},
+		ID:      uuid.New().String(),
+	}
+
+	response := sendRPCRequest(payload, provider)
+	transactionCountHex := response["result"].(string)
+	return transactionCountHex
+}
+
+func sendRPCRequest(payload RPCPayload, url string) map[string]interface{} {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		log.Fatal(err)
-		return ""
 	}
 
-	respBytes, err := http.Post(provider, "application/json", bytes.NewBuffer(data))
+	respBytes, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		log.Fatal(err)
-		return ""
 	}
 
 	defer respBytes.Body.Close()
@@ -53,19 +77,27 @@ func getBalance(provider string, address string) string {
 	body, err := io.ReadAll(respBytes.Body)
 	if err != nil {
 		log.Fatal(err)
-		return ""
 	}
 
 	response := map[string]interface{}{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		log.Fatal(err)
-		return ""
+	}
+	return response
+}
+
+func getBalance(provider string, address string) string {
+	payload := RPCPayload{
+		Jsonrpc: "2.0",
+		Method:  "eth_getBalance",
+		Params:  []interface{}{address, "latest"},
+		ID:      uuid.New().String(),
 	}
 
+	response := sendRPCRequest(payload, provider)
 	balanceHex := response["result"].(string)
-	balance := weiToEther(balanceHex)
-	return balance
+	return balanceHex
 }
 
 func weiToEther(wei string) string {
