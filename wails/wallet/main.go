@@ -1,18 +1,37 @@
 package main
 
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/ethereum/go-ethereum/crypto"
+)
+
 // import (
 // 	"embed"
 // )
-
 // //go:embed all:frontend/dist
 // //var assets embed.FS
 
 func main() {
 	// Create an instance of the app structure
 	//app := NewApp()
-	getBalance("http://127.0.0.1:8545/", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-	getGasPrice("http://127.0.0.1:8545/")
-	getTransactionCount("http://127.0.0.1:8545/", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+	privateKey, err := crypto.HexToECDSA("")
+	if err != nil {
+		log.Fatal("Error converting private key to ECDSA:", err)
+	}
+	chainID := 1337
+	from := ""
+	to := ""
+	signedTx := processTransaction("http://localhost:8545", from, to, big.NewInt(1000000000000000000), privateKey, int64(chainID))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("signedTx:", signedTx)
+	// Get balance from receiver
+	balance := getBalance("http://localhost:8545", to)
+	fmt.Println("Balance after transaction:", balance)
 
 	// Create application with options
 	// err := wails.Run(&options.App{
