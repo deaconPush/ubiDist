@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/big"
+	"wallet/internal/currencies"
 
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -17,22 +17,21 @@ import (
 func main() {
 	// Create an instance of the app structure
 	//app := NewApp()
-	privateKey, err := crypto.HexToECDSA("")
+	privateKey, err := crypto.HexToECDSA("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	if err != nil {
 		log.Fatal("Error converting private key to ECDSA:", err)
 	}
-	chainID := 1337
-	from := ""
-	to := ""
-	signedTx := processTransaction("http://localhost:8545", from, to, big.NewInt(1000000000000000000), privateKey, int64(chainID))
+	from := "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+	to := "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+	value := new(big.Int)
+	ethToWeiMultiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil) // 10^18
+	value.Mul(big.NewInt(1000), ethToWeiMultiplier)
+	// modify the code to receive the value directly in eth, and then transform it to wei for the transaction
+	signedTx, err := currencies.ProcessTransaction("http://localhost:8545", from, to, value, privateKey)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error processing transaction:", err)
 	}
-	fmt.Println("signedTx:", signedTx)
-	// Get balance from receiver
-	balance := getBalance("http://localhost:8545", to)
-	fmt.Println("Balance after transaction:", balance)
-
+	log.Println("Signed transaction:", signedTx)
 	// Create application with options
 	// err := wails.Run(&options.App{
 	// 	Title:  "wallet",
