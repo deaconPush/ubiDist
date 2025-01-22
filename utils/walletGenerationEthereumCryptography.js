@@ -10,8 +10,7 @@ const { writeFileSync } = require("fs");
 
 
 // This function generates the seed phrase, a 256 bits-long entropy will produce a mnemonic of 24 words
-function _generateMnemonic() {
-  const strength = 256; 
+function _generateMnemonic(strength) {
   const mnemonic = generateMnemonic(wordlist, strength);
   const entropy = mnemonicToEntropy(mnemonic, wordlist);
   return { mnemonic, entropy };
@@ -48,7 +47,7 @@ function _getPublicKey(_privateKey) {
     return keccak256(_publicKey).slice(-20);
   }
   
-  function generateWallet(accountIndex = 0) {
+  function generateWallet(accountIndex = 0, strength=256) {
     const { mnemonic, entropy } = _generateMnemonic();
     const hdRootKey = _getHdRootKey(entropy);
     const privateKey = _generatePrivateKey(hdRootKey, accountIndex);
@@ -58,7 +57,7 @@ function _getPublicKey(_privateKey) {
   }
 
   function storeWalletFile() {
-    const wallet = generateWallet();
+    const wallet = generateWallet(0, 128);
     writeFileSync("wallet.json", JSON.stringify(wallet));
   }
   
