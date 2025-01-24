@@ -2,39 +2,29 @@
 This repository is intended to consolidate my knowledge and proof of concepts (POCs) in blockchain technology.
 
 ## Table of contents
-- [Installation](#installation)
-- [Running hardhat scripts](#running-hardhat-scripts)
-- [Hardhat local deployment](#hardhat-local-deployment)
+- [Hardhat](#hardhat)
+- [Wails](#wails)
 
 
-## Installation
+## Hardhat
+This folder contains basic Hardhat scripts for deploying contracts on the Hardhat local network. Detailed instructions for running a Hardhat node or deploying smart contracts to the local network can be found in the hardhat folder's README.
 
-```
-nvm use
-yarn install
-```
+## Wails
+This repository contains applications built using the [Wails](https://wails.io/) framework, which enables the development of cross-platform desktop applications with Go. Below is an overview of the folder structure and included projects.
 
+### Applications
 
-## Running hardhat scripts
+#### 1. **Hello World**
+Located in the `helloworld` folder, this project is a basic Wails application that follows the official [Wails documentation tutorials](https://wails.io/docs/gettingstarted). It is designed to help you get started with Wails and understand its core concepts.
 
-```
-yarn hardhat compile
-yarn hardhat run <script-name>
-```
+#### 2. **Dogs API**
+The `dogs-api` project is another tutorial-based example that demonstrates how to create a Wails application that interacts with APIs. This project builds upon the foundational knowledge from the `helloworld` project and showcases more advanced features.
 
-## Hardhat local deployment
+#### 3. **Wallet**
+The `wallet` project is a desktop application designed for managing transactions. It allows users to:
+- **Receive funds**
+- **Transfer funds**
+- **Interact with different networks**
 
-* Run the local network
-```
-yarn hardhat node
-```
-
-* Deploy the module into the local network
-```
-yarn hardhat ignition deploy ignition/modules/Rocket.js --network localhost
-```
- 
- * Run a script to interact with the deployed contract
-```
- yarn hardhat run scripts/<script-file> --network localhost
- ```
+> **Note:**  
+> Currently, only the **Hardhat local network** is supported for development and testing purposes.
