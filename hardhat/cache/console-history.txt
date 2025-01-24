@@ -1,0 +1,3 @@
+console.log(network.chainId);
+const network = await ethers.provider.getNetwork();
+const network = await ethers.provider.getNetwork()
