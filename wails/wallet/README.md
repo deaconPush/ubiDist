@@ -1,16 +1,23 @@
-# README
+# Pear Wallet
 
-## About
+This project is a personally developed wallet application and is not intended for commercial use. Its primary purpose is to consolidate knowledge and learn about blockchain technology and cryptocurrencies.
 
-This is the official Wails Svelte template.
+## **Getting Started**
 
-## Live Development
+To start building or running the application, you need to have **Wails** and **Go** installed on your system. Follow the [official Wails documentation](https://wails.io/docs/gettingstarted/installation) for installation instructions.
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+Once Wails is installed, run the following command in your terminal to check for any missing dependencies:  
+```bash
+wails doctor
+```
+## Build and Run
 
-## Building
+To build the application you can run the following command at the wallet folder level: 
 
-To build a redistributable, production mode package, use `wails build`.
+```bash
+wails build -clean && ./build/bin/wallet
+```
+
+To work with the Hardhat network, you need to run the Hardhat node in a separate terminal. Instructions for this process can be found in the README inside the Hardhat folder.
+
+
