@@ -1,6 +1,7 @@
 <script>
   import Home from "./views/Home.svelte";
   import RestoreWallet from "./views/RestoreWallet.svelte";
+  import CreateWallet  from "./views/CreateWallet.svelte";
   import { currentView } from "./stores.js";
 
   $: view = $currentView;
@@ -11,6 +12,8 @@
     <Home />
   {:else if view === "RestoreWallet"}
     <RestoreWallet />
+  {:else if view === "CreateWallet"}
+    <CreateWallet />
   {/if}
 </main>
 
