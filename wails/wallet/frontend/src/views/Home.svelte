@@ -3,7 +3,7 @@
     import { currentView } from "../stores.js";
 
     function createWallet() {
-      console.log("Create Wallet button clicked!");
+      currentView.set("CreateWallet");    
     }
   
     function importWallet() {
