@@ -1,8 +1,11 @@
 <script>
-    function inputsLoaded() {
-        const inputs = document.querySelectorAll('.seed-phrase-block');
-    }
     let seedPhraseBlocks = 12;
+    function checkInputs() {
+        const inputs = document.querySelectorAll('.seed-phrase-block');
+        const confirmButton = document.getElementById('confirm-recovery-button');
+        const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+        confirmButton.disabled = !allFilled;
+    }
 </script>
 
 <main>
@@ -10,11 +13,11 @@
     <h4>Enter the Secret Recovery Phrase that you were given when you created your wallet.</h4>
     <div class="seed-words-container">
         { #each Array(seedPhraseBlocks) as _, i }
-            <input on:change={inputsLoaded} type="text" class="seed-phrase-block" />
+            <input on:input={checkInputs} type="text" class="seed-phrase-block" />
         { /each }
     </div>
     <div class="confirm-recovery-button-container">
-        <button id="confirm-recovery-button">Confirm Recovery Phrase</button>
+        <button id="confirm-recovery-button" disabled=true>Confirm Recovery Phrase</button>
     </div>
 </main>
 
