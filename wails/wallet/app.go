@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
-	"wallet/internal/currencies"
+	"fmt"
+
+	"github.com/tyler-smith/go-bip39"
 )
 
 // App struct
@@ -21,17 +23,13 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func (a *App) GetBalance() (string, error) {
-	address := "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-	hexBalance, err := currencies.GetBalance("http://localhost:8545", address)
-	if err != nil {
-		return "", err
+func (a *App) ValidateMnemonic(mnemonic string) bool {
+	if !bip39.IsMnemonicValid(mnemonic) {
+		return false
 	}
+	return true
+}
 
-	etherBalance, err := currencies.HexToEther(hexBalance)
-	if err != nil {
-		return "", err
-	}
-
-	return etherBalance, nil
+func (b *App) Greet(name string) string {
+	return fmt.Sprintf("Hello %s!", name)
 }
