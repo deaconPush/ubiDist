@@ -1,4 +1,18 @@
 <script>
+    import { ValidateMnemonic } from '../../wailsjs/go/main/App'    
+
+    function confirmRecoveryPhrase() {
+        const inputs = document.querySelectorAll('.seed-phrase-block');
+        const seedPhrase = Array.from(inputs).map(input => input.value.trim()).join(' ');
+        ValidateMnemonic(seedPhrase).then(isValid => {
+            if(isValid) {
+                console.log('Recovery phrase is valid');
+            } else {
+                console.log('Invalid recovery phrase');
+            }
+        })
+    }
+
     let seedPhraseBlocks = 12;
     function checkSeedInputs() {
         const inputs = document.querySelectorAll('.seed-phrase-block');
@@ -17,7 +31,7 @@
         { /each }
     </div>
     <div class="confirm-recovery-button-container">
-        <button id="confirm-recovery-button" disabled=true>Confirm Recovery Phrase</button>
+        <button id="confirm-recovery-button" on:click={confirmRecoveryPhrase} disabled=true>Confirm Recovery Phrase</button>
     </div>
 </main>
 
