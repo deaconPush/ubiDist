@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tyler-smith/go-bip39"
 )
@@ -28,8 +27,4 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 		return false
 	}
 	return true
-}
-
-func (b *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s!", name)
 }
