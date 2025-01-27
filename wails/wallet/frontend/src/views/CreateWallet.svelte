@@ -1,5 +1,39 @@
 <script>
-    // Your script logic (if needed)
+  let passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/;
+  function isPasswordValid(password) {
+    return passwordRegex.test(password);
+  }
+
+  function checkPasswordStrength() {
+    const password = document.getElementById('wallet-password').value;
+    const passwordStrengthContainer = document.getElementById('password-strength');
+    const isPasswordStrong = isPasswordValid(password);
+    passwordStrengthContainer.style.display = 'block';
+    if (isPasswordStrong) {
+      passwordStrengthContainer.textContent = 'Password strength: Strong';
+     } else {
+        passwordStrengthContainer.textContent = 'Password strength: Weak';
+      }
+    }
+
+  function checkPasswordsMatch() {
+    const password = document.getElementById('wallet-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const isPasswordStrong = isPasswordValid(password);
+    const createWalletButton = document.getElementById('create-wallet-button');
+    const passwordMatchContainer = document.getElementById('password-match');
+    passwordMatchContainer.style.display = 'block';
+    if (password !== confirmPassword) {
+      passwordMatchContainer.textContent = 'Passwords do not match';
+    } else {
+      passwordMatchContainer.textContent = '';
+      if (isPasswordStrong) {
+        createWalletButton.disabled = false;
+        createWalletButton.style.backgroundColor = 'black';
+      }
+    }
+  } 
+  
   </script>
   
   <main>
@@ -11,14 +45,16 @@
   
     <form class="form-container">
       <div class="input-group">
-        <label for="password">New password (15 characters min)</label>
-        <input type="password" id="password" />
+        <label for="password">New password (16 characters min, at least one character should be in lowercase, one in uppercase and one number)</label>
+        <input type="password" id="wallet-password" on:input={checkPasswordStrength} />
+        <p id="password-strength" class="validation-label" ></p>
       </div>
       <div class="input-group">
         <label for="confirm-password">Confirm password</label>
-        <input type="password" id="confirm-password" />
+        <input type="password" id="confirm-password" on:input={checkPasswordsMatch} />
+        <p id="password-match" class="validation-label" ></p>
       </div>
-      <button id="create-wallet-button" type="button">Create a new wallet</button>
+      <button id="create-wallet-button" type="button" disabled=true>Create a new wallet</button>
     </form>
   </main>
   
@@ -95,9 +131,21 @@
     border: none;
     transition: background-color 0.3s;
   }
+
+  #create-wallet-button:disabled {
+    background-color: lightslategray;
+  }
   
   #create-wallet-button:hover {
     background-color: #333; /* Slightly lighter black on hover */
+  }
+
+  .validation-label {
+    padding-top: 10px;
+    font-size: 0.9em;
+    display: none;
+    color: red;
+    margin-top: -10px;
   }
   </style>
   
