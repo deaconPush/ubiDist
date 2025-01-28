@@ -59,93 +59,157 @@
   </main>
   
   <style>
-  main {
-    color: greenyellow;
+    main {
     font-family: "Nunito", sans-serif;
+    color: #333; /* Neutral dark text */
+    background-color: #f9f9f9; /* Soft light background */
     height: 100vh;
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
-  
+
   .header-content {
     text-align: center;
-    margin-bottom: 20px; /* Adds space between the header and form */
-  }
-  
-  h2 {
-    font-size: 2em;
-    margin-bottom: 10px;
-  }
-  
-  h3 {
-    font-size: 1.5em;
-    margin-bottom: 10px;
-  }
-  
-  p {
-    font-size: 1.3em;
-    font-weight: bold;
     margin-bottom: 20px;
   }
-  
+
+  h2 {
+    font-size: 2rem;
+    color: #0066cc; /* Accessible blue for emphasis */
+    margin-bottom: 10px;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  p {
+    font-size: 1rem;
+    color: #555; /* Slightly muted for descriptions */
+    margin-bottom: 20px;
+  }
+
+  /* Form styles */
   .form-container {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Adds space between input groups */
+    align-items: center;
+    align-content: center;
+    gap: 20px;
     width: 100%;
     max-width: 400px;
+    background-color: #fff; /* White for high contrast */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
   }
-  
+
   .input-group {
     display: flex;
     flex-direction: column;
-    gap: 5px; /* Space between label and input */
+    gap: 2px;
+    align-items: center;
   }
-  
+
   label {
-    font-size: 1em;
+    font-size: 1rem;
     font-weight: bold;
+    color: #222;
   }
-  
+
   input {
-    padding: 10px;
-    font-size: 1em;
+    padding: 4px;
+    font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 5px;
-    width: 100%;
+    max-width: 190px;
+    color: #333; /* Dark input text */
+    background-color: #fefefe; /* Off-white for inputs */
   }
-  
+
+  input:focus {
+    outline: none;
+    border-color: #0066cc; /* Highlight on focus */
+    box-shadow: 0 0 3px #0066cc;
+  }
+
+  /* Button styles */
   #create-wallet-button {
-    text-align: center; 
-    justify-content: center;
+    text-align: center;
     color: white;
-    background-color: black;
-    font-family: "Nunito";
+    background-color: #0066cc; /* Accessible blue */
+    font-family: "Nunito", sans-serif;
     font-weight: bold;
     width: 100%;
-    height: 40px;
-    border-radius: 30px;
+    height: 25px;
+    border-radius: 25px;
     cursor: pointer;
     border: none;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease;
+  }
+
+  #create-wallet-button:hover:not(:disabled) {
+    background-color: #004c99; /* Darker blue on hover */
   }
 
   #create-wallet-button:disabled {
-    background-color: lightslategray;
-  }
-  
-  #create-wallet-button:hover {
-    background-color: #333; /* Slightly lighter black on hover */
+    background-color: #ccc; /* Light gray for disabled */
+    color: #666;
+    cursor: not-allowed;
   }
 
+  /* Validation messages */
   .validation-label {
-    padding-top: 10px;
-    font-size: 0.9em;
-    display: none;
-    color: red;
-    margin-top: -10px;
+    font-size: 0.9rem;
+    color: red; /* Alerting red for errors */
+    display: none; /* Hidden by default */
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    main {
+      padding: 15px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+    }
+
+    .form-container {
+      padding: 15px;
+    }
+
+    #create-wallet-button {
+      height: 40px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+    }
+
+    label,
+    input,
+    #create-wallet-button {
+      font-size: 0.9rem;
+    }
+
+    .form-container {
+      gap: 15px;
+    }
   }
   </style>
   
