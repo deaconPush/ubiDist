@@ -1,4 +1,6 @@
 <script>
+  import { CreateWallet } from '../../wailsjs/go/main/App'    
+
   let passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/;
   function isPasswordValid(password) {
     return passwordRegex.test(password);
@@ -36,6 +38,13 @@
 
   function createWallet() {
     const password = document.getElementById('wallet-password').value;
+    CreateWallet(password).then((data, error) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+      console.log(data);
+    })
   }
   
   </script>

@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"wallet/internal/utils"
 
+	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
 
@@ -27,15 +29,14 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 	return bip39.IsMnemonicValid(mnemonic)
 }
 
-func (a *App) GenerateMnemonic() (string, error) {
-	entropy, err := bip39.NewEntropy(256)
-	if err != nil {
-		return "", fmt.Errorf("error generating entropy: %v", err)
-	}
-
-	mnemonic, err := bip39.NewMnemonic(entropy)
+func (a *App) CreateWallet(password string) (string, error) {
+	mnemonic, err := utils.GenerateMnemonic()
 	if err != nil {
 		return "", fmt.Errorf("error generating mnemonic: %v", err)
 	}
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, _ := bip32.NewMasterKey(seed)
+	encryptedMasterKey, err := utils.Encrypt([]byte(password), masterKey.Key)
+
 	return mnemonic, nil
 }
