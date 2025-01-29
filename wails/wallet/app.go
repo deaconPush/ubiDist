@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tyler-smith/go-bip39"
 )
@@ -23,8 +24,18 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) ValidateMnemonic(mnemonic string) bool {
-	if !bip39.IsMnemonicValid(mnemonic) {
-		return false
+	return bip39.IsMnemonicValid(mnemonic)
+}
+
+func (a *App) GenerateMnemonic() (string, error) {
+	entropy, err := bip39.NewEntropy(256)
+	if err != nil {
+		return "", fmt.Errorf("error generating entropy: %v", err)
 	}
-	return true
+
+	mnemonic, err := bip39.NewMnemonic(entropy)
+	if err != nil {
+		return "", fmt.Errorf("error generating mnemonic: %v", err)
+	}
+	return mnemonic, nil
 }
