@@ -33,6 +33,10 @@
       }
     }
   } 
+
+  function createWallet() {
+    const password = document.getElementById('wallet-password').value;
+  }
   
   </script>
   
@@ -54,15 +58,15 @@
         <input type="password" id="confirm-password" on:input={checkPasswordsMatch} />
         <p id="password-match" class="validation-label" ></p>
       </div>
-      <button id="create-wallet-button" type="button" disabled=true>Create a new wallet</button>
+      <button id="create-wallet-button" type="button" disabled=true on:click={createWallet}>Create a new wallet</button>
     </form>
   </main>
   
   <style>
     main {
     font-family: "Nunito", sans-serif;
-    color: #333; /* Neutral dark text */
-    background-color: #f9f9f9; /* Soft light background */
+    color: #333; 
+    background-color: #f9f9f9; 
     height: 100vh;
     padding: 20px;
     display: flex;
@@ -77,7 +81,7 @@
 
   h2 {
     font-size: 2rem;
-    color: #0066cc; /* Accessible blue for emphasis */
+    color: #0066cc; 
     margin-bottom: 10px;
   }
 
@@ -89,7 +93,7 @@
 
   p {
     font-size: 1rem;
-    color: #555; /* Slightly muted for descriptions */
+    color: #555; 
     margin-bottom: 20px;
   }
 
@@ -102,10 +106,10 @@
     gap: 20px;
     width: 100%;
     max-width: 400px;
-    background-color: #fff; /* White for high contrast */
+    background-color: #fff;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
   }
 
   .input-group {
@@ -127,21 +131,20 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     max-width: 190px;
-    color: #333; /* Dark input text */
-    background-color: #fefefe; /* Off-white for inputs */
+    color: #333; 
+    background-color: #fefefe; 
   }
 
   input:focus {
     outline: none;
-    border-color: #0066cc; /* Highlight on focus */
+    border-color: #0066cc; 
     box-shadow: 0 0 3px #0066cc;
   }
 
-  /* Button styles */
   #create-wallet-button {
     text-align: center;
     color: white;
-    background-color: #0066cc; /* Accessible blue */
+    background-color: #0066cc;
     font-family: "Nunito", sans-serif;
     font-weight: bold;
     width: 100%;
@@ -153,11 +156,11 @@
   }
 
   #create-wallet-button:hover:not(:disabled) {
-    background-color: #004c99; /* Darker blue on hover */
+    background-color: #004c99; 
   }
 
   #create-wallet-button:disabled {
-    background-color: #ccc; /* Light gray for disabled */
+    background-color: #ccc; 
     color: #666;
     cursor: not-allowed;
   }
@@ -165,8 +168,8 @@
   /* Validation messages */
   .validation-label {
     font-size: 0.9rem;
-    color: red; /* Alerting red for errors */
-    display: none; /* Hidden by default */
+    color: red; 
+    display: none; 
   }
 
   /* Responsive styles */
