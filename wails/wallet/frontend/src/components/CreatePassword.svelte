@@ -23,7 +23,7 @@
       const password = document.getElementById('wallet-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
       const isPasswordStrong = isPasswordValid(password);
-      const createWalletButton = document.getElementById('create-wallet-button');
+      const walletButton = document.getElementById('wallet-button');
       const passwordMatchContainer = document.getElementById('password-match');
       passwordMatchContainer.style.display = 'block';
       if (password !== confirmPassword) {
@@ -31,8 +31,8 @@
       } else {
         passwordMatchContainer.textContent = '';
         if (isPasswordStrong) {
-          createWalletButton.disabled = false;
-          createWalletButton.style.backgroundColor = 'black';
+          walletButton.disabled = false;
+          walletButton.style.backgroundColor = 'black';
         }
       }
     }   
@@ -118,7 +118,7 @@
       box-shadow: 0 0 3px #0066cc;
     }
   
-    #create-wallet-button {
+    #wallet-button {
       text-align: center;
       color: white;
       background-color: #0066cc;
@@ -132,11 +132,11 @@
       transition: background-color 0.3s ease;
     }
   
-    #create-wallet-button:hover:not(:disabled) {
+    #wallet-button:hover:not(:disabled) {
       background-color: #004c99; 
     }
   
-    #create-wallet-button:disabled {
+    #wallet-button:disabled {
       background-color: #ccc; 
       color: #666;
       cursor: not-allowed;
@@ -167,7 +167,7 @@
         padding: 15px;
       }
   
-      #create-wallet-button {
+      #wallet-button {
         height: 40px;
       }
     }
@@ -183,7 +183,7 @@
   
       label,
       input,
-      #create-wallet-button {
+      #wallet-button {
         font-size: 0.9rem;
       }
   

@@ -1,5 +1,5 @@
 <script>
-    import { ValidateMnemonic } from '../../wailsjs/go/main/App'    
+    import { ValidateMnemonic, RestoreWallet } from '../../wailsjs/go/main/App'    
     import SeedRecovery from '../components/SeedRecovery.svelte';
     import CreatePassword from '../components/CreatePassword.svelte';
     
@@ -8,9 +8,13 @@
     let showSeedRecovery = true;
 
     function restoreWallet() {
-        console.log('Restore wallet');
+        const password = document.getElementById('wallet-password').value;
+        RestoreWallet(password, seedPhrase).then((err) => {
+            if (err) {
+                console.log("Error restoring wallet: ", err);
+            }
+        })
     }
-
     function confirmRecoveryPhrase() {
         const inputs = document.querySelectorAll('.seed-phrase-block');
         seedPhrase = Array.from(inputs).map(input => input.value.trim()).join(' ');
@@ -18,7 +22,7 @@
             if(isValid) {
                 showSeedRecovery = false;
             } else {
-                console.log('Invalid recovery phrase');
+                
             }
         })
     }

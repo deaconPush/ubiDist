@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"wallet/internal/utils"
 
@@ -34,9 +35,24 @@ func (a *App) CreateWallet(password string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error generating mnemonic: %v", err)
 	}
-	seed := bip39.NewSeed(mnemonic, "")
-	masterKey, _ := bip32.NewMasterKey(seed)
-	encryptedMasterKey, err := utils.Encrypt([]byte(password), masterKey.Key)
 
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return "", fmt.Errorf("error recovering master key from seed:: %v", err)
+	}
+
+	fmt.Println("public key: ", hex.EncodeToString(masterKey.PublicKey().Key))
 	return mnemonic, nil
+}
+
+func (a *App) RestoreWallet(password string, mnemonic string) error {
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return fmt.Errorf("error recovering master key from seed: %v", err)
+	}
+
+	fmt.Println("public key: ", hex.EncodeToString(masterKey.PublicKey().Key))
+	return nil
 }
