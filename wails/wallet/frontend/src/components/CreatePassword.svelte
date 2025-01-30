@@ -59,13 +59,13 @@
     <style>
     .header-content {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
   
     h2 {
       font-size: 2rem;
       color: #0066cc; 
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
   
     p {
@@ -84,7 +84,8 @@
       width: 100%;
       max-width: 400px;
       background-color: #fff;
-      padding: 20px;
+      padding: 5px;
+      margin-top: 0px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
     }

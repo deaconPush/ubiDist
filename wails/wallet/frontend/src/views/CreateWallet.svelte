@@ -1,6 +1,17 @@
 <script>
   import { CreateWallet } from '../../wailsjs/go/main/App'    
+  import ProgressBar from '../components/ProgressBar.svelte';
   import CreatePassword from '../components/CreatePassword.svelte';
+  
+
+  let currentStep = 0;
+  const steps = ["Create Wallet", "Backup Wallet", "Confirm Seed Phrase"];
+
+  function nextStep() {
+   if (currentStep < steps.length - 1) {
+     currentStep += 1;
+   }
+  }
 
   function createWallet() {
     const password = document.getElementById('wallet-password').value;
@@ -10,15 +21,25 @@
         return;
       }
       console.log(data);
+      nextStep();
     })
   }
-  
   </script>
   <main>
-    <CreatePassword
-      handleClick={createWallet}
-      walletLabel="Create Wallet"
+    <ProgressBar 
+    steps={steps} 
+    currentStep={currentStep} 
     />
+    {#if currentStep === 0}
+      <CreatePassword
+        handleClick={createWallet}
+        walletLabel="Create Wallet"
+      />
+      {:else if currentStep === 1}
+      <p>Backup Wallet</p>
+      {:else if currentStep === 2}
+      <p>Confirm Seed Phrase</p>
+    {/if}
   </main>
 
 <style>
