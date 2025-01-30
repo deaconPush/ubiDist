@@ -2,7 +2,12 @@ package main
 
 import (
 	"context"
-	"wallet/internal/currencies"
+	"encoding/hex"
+	"fmt"
+	"wallet/internal/utils"
+
+	"github.com/tyler-smith/go-bip32"
+	"github.com/tyler-smith/go-bip39"
 )
 
 // App struct
@@ -21,17 +26,33 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func (a *App) GetBalance() (string, error) {
-	address := "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-	hexBalance, err := currencies.GetBalance("http://localhost:8545", address)
+func (a *App) ValidateMnemonic(mnemonic string) bool {
+	return bip39.IsMnemonicValid(mnemonic)
+}
+
+func (a *App) CreateWallet(password string) (string, error) {
+	mnemonic, err := utils.GenerateMnemonic()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error generating mnemonic: %v", err)
 	}
 
-	etherBalance, err := currencies.HexToEther(hexBalance)
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error recovering master key from seed:: %v", err)
 	}
 
-	return etherBalance, nil
+	fmt.Println("public key: ", hex.EncodeToString(masterKey.PublicKey().Key))
+	return mnemonic, nil
+}
+
+func (a *App) RestoreWallet(password string, mnemonic string) error {
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return fmt.Errorf("error recovering master key from seed: %v", err)
+	}
+
+	fmt.Println("public key: ", hex.EncodeToString(masterKey.PublicKey().Key))
+	return nil
 }
