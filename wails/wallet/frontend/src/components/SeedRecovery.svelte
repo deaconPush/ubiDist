@@ -1,4 +1,5 @@
 <script>
+    import display from '../assets/images/display.png';
     export let onConfirm = () => {};
     export let seedPhraseBlocks = 0;
 
@@ -12,9 +13,15 @@
 
 <h4>Enter the Secret Recovery Phrase that you were given when you created your wallet.</h4>
 <div class="seed-words-container">
-    { #each Array(seedPhraseBlocks) as _, i }
-        <input on:input={checkSeedInputs} type="text" class="seed-phrase-block" />
-    { /each }
+    {#each Array(seedPhraseBlocks) as _, i}
+        <div class="input-wrapper">
+            <input on:input={checkSeedInputs} type="password" class="seed-phrase-block" />
+            <img 
+                src={display} 
+                class="eye-icon"
+            />
+        </div>
+    {/each}
 </div>
 <div class="confirm-recovery-button-container">
     <button id="confirm-recovery-button" on:click={onConfirm} disabled=true>Confirm Recovery Phrase</button>
@@ -33,27 +40,43 @@ h4 {
 .seed-words-container {
     display: grid;
     grid-template-columns: repeat(3, minmax(120px, 1fr)); 
-    column-gap: 40px; 
+    column-gap: 50px; 
     row-gap: 15px; 
     justify-items: center;
-    align-items: center;
+    align-items: space-between;
     margin-bottom: 20px;
     width: 100%;
-    max-width: 600px; 
+    max-width: 480px; 
+}
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
 }
 
 .seed-phrase-block {
-    width: 100%; 
+    width: 65%; 
     font-size: 15px;
     background-color: #fff; 
     border: 1px solid #ccc;
     border-radius: 7px;
     height: 40px;
     font-family: "Nunito";
-    padding: 0 10px;
+    padding: 0 35px 0 10px;
     color: #333; 
 }
 
+.eye-icon {
+    position: absolute;
+    right: -17px; 
+    transform: translateX(50%);
+    cursor: pointer;
+    z-index: 10; 
+    height: 20px;
+    width: 20px;
+}
 .seed-phrase-block::placeholder {
     color: #999; 
 }
@@ -92,11 +115,17 @@ h4 {
 @media (max-width: 1024px) {
     .seed-words-container {
         grid-template-columns: repeat(3, minmax(100px, 1fr));
-        column-gap: 40px; 
+        column-gap: 20px; 
     }
 
     #confirm-recovery-button {
         max-width: 250px;
+    }
+
+    .eye-icon {
+        right: -10px;  
+        width: 15px;
+        height: 15px;
     }
 }
 
@@ -113,6 +142,12 @@ h4 {
 
     #confirm-recovery-button {
         max-width: 200px;
+    }
+
+    .eye-icon {
+        right: -14px; 
+        width: 22px;
+        height: 22px;
     }
 }
 
@@ -133,6 +168,12 @@ h4 {
     #confirm-recovery-button {
         max-width: 100%; 
         padding: 10px 15px;
+    }
+
+    .eye-icon {
+        right: -8px; /* Further reduce for mobile */
+        width: 30px;
+        height: 30px;
     }
 }
 </style>
