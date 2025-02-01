@@ -19,6 +19,7 @@
             <img 
                 src={display} 
                 class="eye-icon"
+                alt="eye toggle icon"
             />
         </div>
     {/each}
