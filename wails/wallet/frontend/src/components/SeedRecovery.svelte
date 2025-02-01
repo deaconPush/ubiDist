@@ -1,5 +1,6 @@
 <script>
     import display from '../assets/images/display.png';
+    import hide from '../assets/images/hide.png';
     export let onConfirm = () => {};
     export let seedPhraseBlocks = 0;
 
@@ -9,17 +10,33 @@
         const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
         confirmButton.disabled = !allFilled;
     }
+
+    function toggleSeedBlockVisibility(event) {
+        const inputId = event.target.previousElementSibling.id;
+        const input = document.getElementById(inputId);
+        const eyeIcon = event.target;
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeIcon.src = hide;
+        } else {
+            input.type = 'password';
+            eyeIcon.src = display;
+        }
+    }
+
 </script>
 
 <h4>Enter the Secret Recovery Phrase that you were given when you created your wallet.</h4>
 <div class="seed-words-container">
     {#each Array(seedPhraseBlocks) as _, i}
         <div class="input-wrapper">
-            <input on:input={checkSeedInputs} type="password" class="seed-phrase-block" />
+            <input on:input={checkSeedInputs} type="password" class="seed-phrase-block" id={`seed-prhase-block-${i}`} />
             <img 
                 src={display} 
                 class="eye-icon"
                 alt="eye toggle icon"
+                on:click={toggleSeedBlockVisibility}
+                id={`eye-icon-${i}`}
             />
         </div>
     {/each}
