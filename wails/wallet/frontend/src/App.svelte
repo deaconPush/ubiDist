@@ -2,7 +2,7 @@
   import Home from "./views/Home.svelte";
   import RestoreWallet from "./views/RestoreWallet.svelte";
   import CreateWallet  from "./views/CreateWallet.svelte";
-  import { currentView } from "./stores.js";
+  import { currentView } from "./stores";
 
   $: view = $currentView;
 </script>
