@@ -1,12 +1,12 @@
-<script>
+<script lang="ts">
     import logo from '../assets/images/pear-logo.png';
-    import { currentView } from "../stores.js";
+    import { currentView } from "../stores";
 
-    function createWallet() {
-      currentView.set("CreateWallet");    
+    function createWallet(): void {
+      currentView.set("CreateWallet");
     }
   
-    function importWallet() {
+    function importWallet(): void {
       currentView.set("RestoreWallet");
     }
   </script>
