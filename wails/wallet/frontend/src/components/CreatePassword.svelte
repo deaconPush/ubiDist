@@ -74,7 +74,6 @@
       margin-bottom: 20px;
     }
   
-    /* Form styles */
     .form-container {
       display: flex;
       flex-direction: column;

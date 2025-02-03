@@ -12,7 +12,7 @@ import (
 )
 
 func GenerateMnemonic() (string, error) {
-	entropy, err := bip39.NewEntropy(256)
+	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
 		return "", fmt.Errorf("error generating entropy: %v", err)
 	}
