@@ -1,6 +1,6 @@
-<script>
-    export let steps = [];
-    export let currentStep = 0;
+<script lang="ts">
+    export let steps: string[] = [];
+    export let currentStep: number = 0;
 </script>
 
 <div class="progress-container">
