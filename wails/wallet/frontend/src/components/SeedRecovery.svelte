@@ -1,20 +1,39 @@
-<script>
+<script lang="ts">
     import display from '../assets/images/display.png';
     import hide from '../assets/images/hide.png';
-    export let onConfirm = () => {};
-    export let seedPhraseBlocks = 0;
+    export let onConfirm: () => void = () => {};
+    export let seedPhraseBlocks: number = 0;
 
-    function checkSeedInputs() {
-        const inputs = document.querySelectorAll('.seed-phrase-block');
-        const confirmButton = document.getElementById('confirm-recovery-button');
+    function checkSeedInputs(): void {
+        const inputs = document.querySelectorAll('.seed-phrase-block') as NodeListOf<HTMLInputElement>;
+        if(!inputs) {
+            console.error('Seed phrase inputs not found');
+            return;
+        }
+
+        const confirmButton = document.getElementById('confirm-recovery-button') as HTMLButtonElement;
+        if (!confirmButton) {
+            console.error('Confirm button not found');
+            return;
+        }
+
         const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
         confirmButton.disabled = !allFilled;
     }
 
-    function toggleSeedBlockVisibility(event) {
-        const inputId = event.target.previousElementSibling.id;
-        const input = document.getElementById(inputId);
-        const eyeIcon = event.target;
+    function toggleSeedBlockVisibility(event: MouseEvent): void {
+        const eyeIcon = event.target as HTMLImageElement;
+        if (!eyeIcon) {
+            console.error("Target is not an image element");
+            return;
+        }
+
+        const input = eyeIcon.previousElementSibling as HTMLInputElement;
+        if(!input) {
+            console.error("Previous element is not an input element");
+            return;
+        }
+        
         if (input.type === 'password') {
             input.type = 'text';
             eyeIcon.src = hide;
