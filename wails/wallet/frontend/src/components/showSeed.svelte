@@ -1,7 +1,7 @@
-<script>
-    export let seedPhraseBlocks = 0;
-    export let seedList = [];
-    export let onConfirm = () => {};
+<script lang="ts">
+    export let seedPhraseBlocks: number = 0;
+    export let seedList: string[] = [];
+    export let onConfirm: () => void = () => {};
 </script>
 
 <div class="seed-words-container">

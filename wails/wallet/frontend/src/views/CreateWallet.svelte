@@ -1,28 +1,35 @@
-<script>
+<script lang="ts">
   import { CreateWallet } from '../../wailsjs/go/main/App'    
   import ProgressBar from '../components/ProgressBar.svelte';
   import CreatePassword from '../components/CreatePassword.svelte';
   
 
-  let currentStep = 0;
-  const steps = ["Create Wallet", "Backup Wallet", "Confirm Seed Phrase"];
+  let currentStep: number = 0;
+  const steps: string[] = ["Create Wallet", "Backup Wallet", "Confirm Seed Phrase"];
 
-  function nextStep() {
+  function nextStep(): void {
    if (currentStep < steps.length - 1) {
      currentStep += 1;
    }
   }
 
-  function createWallet() {
-    const password = document.getElementById('wallet-password').value;
-    CreateWallet(password).then((data, error) => {
-      if (error) {
-        console.error(error);
-        return;
-      }
+  function createWallet(): void {
+    const passwordInput = document.getElementById('wallet-password') as HTMLInputElement;
+    
+    if (!passwordInput) {
+      console.error('Password input not found');
+      return;
+    }
+
+    const password: string = passwordInput.value;
+    CreateWallet(password)
+    .then((data) => {
       console.log(data);
       nextStep();
     })
+    .catch((error) => {
+      console.error(error);
+    });
   }
   </script>
   <main>
