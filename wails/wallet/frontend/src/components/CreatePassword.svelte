@@ -142,7 +142,6 @@
       cursor: not-allowed;
     }
   
-    /* Validation messages */
     .validation-label {
       font-size: 0.9rem;
       color: red; 
@@ -151,18 +150,10 @@
   
     /* Responsive styles */
     @media (max-width: 768px) {
-      main {
-        padding: 15px;
-      }
-  
       h2 {
         font-size: 1.8rem;
       }
-  
-      h3 {
-        font-size: 1.3rem;
-      }
-  
+
       .form-container {
         padding: 15px;
       }
@@ -175,10 +166,6 @@
     @media (max-width: 480px) {
       h2 {
         font-size: 1.5rem;
-      }
-  
-      h3 {
-        font-size: 1.2rem;
       }
   
       label,
