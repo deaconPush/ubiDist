@@ -1,6 +1,8 @@
 <script lang="ts">
     import display from '../assets/images/display.png';
     import hide from '../assets/images/hide.png';
+    import { ValidateMnemonic } from '../../wailsjs/go/main/App';
+
     export let onConfirm: () => void = () => {};
     export let seedPhraseBlocks: number = 0;
 
@@ -16,9 +18,27 @@
             console.error('Confirm button not found');
             return;
         }
+        
+        const validationLabel = document.getElementById('seed-phrase-validation') as HTMLParagraphElement;
+        if (!validationLabel) {
+            console.error('Validation label not found');
+            return;
+        }
 
         const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-        confirmButton.disabled = !allFilled;
+        if(allFilled){
+            const seedPhrase: string = Array.from(inputs).map(input => input.value.trim()).join(' ');
+            ValidateMnemonic(seedPhrase)
+            .then((isValid) => {
+                if(isValid){
+                    confirmButton.disabled = false;
+                    validationLabel.style.display = 'none';
+                } else {
+                    validationLabel.style.display = 'block';
+                    validationLabel.textContent = 'Invalid seed phrase';
+                }
+            })
+        }   
     }
 
     function toggleSeedBlockVisibility(event: MouseEvent): void {
@@ -60,6 +80,7 @@
         </div>
     {/each}
 </div>
+<p id="seed-phrase-validation" class="validation-label" ></p>
 <div class="confirm-recovery-button-container">
     <button id="confirm-recovery-button" on:click={onConfirm} disabled=true>Confirm Recovery Phrase</button>
 </div>
@@ -147,6 +168,12 @@ h4 {
     background-color: #ccc; 
     color: #666;
     cursor: not-allowed;
+}
+
+.validation-label {
+      font-size: 0.9rem;
+      color: red; 
+      display: none; 
 }
 
 @media (max-width: 1024px) {
