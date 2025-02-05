@@ -135,11 +135,17 @@ h4 {
 }
 
 .validation-label {
-    margin-top: -10px;
-    background-color: #ef9f9e;
+    margin-top: -8px;
+    background-color: #ffdddd; 
+    border-left: 4px solid #d9534f;
     font-size: 0.9rem;
-    color: black; 
-    display: none; 
+    color: #a94442; 
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: none;
+    width: fit-content;
+    max-width: 100%;
+    transition: opacity 0.3s ease-in-out;
 }
 
 @media (max-width: 1024px) {
