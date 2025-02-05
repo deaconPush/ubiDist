@@ -147,7 +147,7 @@ h4 {
 
 #confirm-recovery-button {
     padding: 12px 20px;
-    margin-top: 40px;
+    margin-top: 15px;
     background-color: #0066cc;
     max-width: 300px;
     font-family: "Nunito";
@@ -171,9 +171,17 @@ h4 {
 }
 
 .validation-label {
-      font-size: 0.9rem;
-      color: red; 
-      display: none; 
+    margin-top: -8px;
+    background-color: #ffdddd; 
+    border-left: 4px solid #d9534f;
+    font-size: 0.9rem;
+    color: #a94442; 
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: none;
+    width: fit-content;
+    max-width: 100%;
+    transition: opacity 0.3s ease-in-out;
 }
 
 @media (max-width: 1024px) {
