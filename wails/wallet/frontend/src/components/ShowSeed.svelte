@@ -156,7 +156,7 @@ h3 {
     #next-button {
         max-width: 250px;
     }
-    .eye-icon {
+    #eye-icon {
         width: 15px;
         height: 15px;
     }
@@ -183,11 +183,11 @@ h3 {
         max-width: 200px;
     }
 
-    .hide-button-container{
+    .toggle-seedphrase-container{
         margin-left: -120px;
     }
 
-    .eye-icon{
+    #eye-icon{
         height: 22px;
         width: 22px;
     }
@@ -212,7 +212,7 @@ h3 {
         padding: 10px 15px;
     }
 
-    .eye-icon{
+    #eye-icon{
         height: 15px;
         width: 15px;
     }

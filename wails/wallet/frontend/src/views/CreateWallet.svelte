@@ -3,17 +3,21 @@
   import ProgressBar from '../components/ProgressBar.svelte';
   import CreatePassword from '../components/CreatePassword.svelte';
   import ShowSeed from '../components/ShowSeed.svelte';
+  import ConfirmSeed from '../components/ConfirmSeed.svelte';
+  import { currentView } from '../stores';
+  
   
   let currentStep: number = 0;
   let seedPhraseList: string[] = [];
   const steps: string[] = ["Create Wallet", "Backup Seed Phrase", "Confirm Seed Phrase"];
+
   function nextStep(): void {
    if (currentStep < steps.length - 1) {
      currentStep += 1;
    }
   }
 
-  function createWallet(): void {
+  function passwordConfirmed(): void {
     const passwordInput = document.getElementById('wallet-password') as HTMLInputElement;
     
     if (!passwordInput) {
@@ -32,9 +36,15 @@
     });
   }
 
-  function confirmSeedPhrase(): void {
+  function SeedSaved(): void {
     nextStep();
   }
+
+  function SeedConfirmed(): void {
+    currentView.set('Home');
+  }
+
+
   </script>
   <main>
     <ProgressBar 
@@ -43,16 +53,19 @@
     />
     {#if currentStep === 0}
       <CreatePassword
-        handleClick={createWallet}
-        walletLabel="Create Wallet"
+        handleClick={passwordConfirmed}
+        walletLabel="Create Password for Wallet"
       />
     {:else if currentStep === 1}
       <ShowSeed
         seedPhraseList={seedPhraseList}
-        onConfirm={confirmSeedPhrase}
+        onConfirm={SeedSaved}
       />  
-    {:else if currentStep === 2}
-      <p>Confirm Seed Phrase</p>
+    {:else if currentStep === 2}  
+      <ConfirmSeed
+        seedPhraseList={seedPhraseList}
+        onConfirm={SeedConfirmed}
+      />
     {/if}
   </main>
 
