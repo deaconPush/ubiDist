@@ -2,6 +2,7 @@
   import WalletRecovery from "./views/WalletRecovery.svelte";
   import RestoreWallet from "./views/RestoreWallet.svelte";
   import CreateWallet  from "./views/CreateWallet.svelte";
+  import Home from "./views/Home.svelte";
   import { currentView } from "./stores";
   
 
@@ -15,6 +16,8 @@
     <RestoreWallet />
   {:else if view === "CreateWallet"}
     <CreateWallet />
+  {:else if view === "Home"}
+    <Home />
   {/if}
 </main>
 
