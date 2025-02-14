@@ -46,7 +46,7 @@ func (a *App) CreateWallet(password string) (string, error) {
 	return mnemonic, nil
 }
 
-func (a *App) RestoreWallet(password string, mnemonic string) error {
+func (a *App) RestoreWallet(password, mnemonic string) error {
 	wallet, err := utils.RestoreWallet(password, mnemonic)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
