@@ -62,6 +62,22 @@ func sendRPCRequest(payload RPCPayload, url string) (map[string]interface{}, err
 	return response, nil
 }
 
+func NetListening(provider string) bool {
+	payload := RPCPayload{
+		Jsonrpc: "2.0",
+		Method:  "net_listening",
+		Params:  []interface{}{},
+		ID:      uuid.New().String(),
+	}
+
+	response, err := sendRPCRequest(payload, provider)
+	if err != nil {
+		return false
+	}
+
+	return response["result"].(bool)
+}
+
 func GetGasPrice(provider string) (*big.Int, error) {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
@@ -316,4 +332,19 @@ func HexToEther(hexBalance string) (string, error) {
 	ether.Quo(ether, big.NewFloat(1e18))
 
 	return ether.String(), nil
+}
+
+func EtherToWei(ether string) (*big.Int, error) {
+	etherFloat, _, err := new(big.Float).Parse(ether, 10)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ether: %w", err)
+	}
+
+	wei := new(big.Int)
+	etherInt := new(big.Int)
+	etherFloat.Mul(etherFloat, big.NewFloat(1e18))
+	etherFloat.Int(etherInt)
+	wei.Set(etherInt)
+
+	return wei, nil
 }
