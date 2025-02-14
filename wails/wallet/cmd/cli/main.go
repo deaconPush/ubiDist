@@ -9,10 +9,22 @@ import (
 	"wallet/internal/utils"
 )
 
-func createWallet(password string) *utils.Wallet {
-	wallet, _, _ := utils.CreateWallet(password)
-	fmt.Println("Wallet created")
-	return wallet
+func createWallet(password string) (*utils.Wallet, error) {
+	wallet, _, err := utils.CreateWallet(password)
+	if err != nil {
+		return nil, fmt.Errorf("error creating wallet: %v", err)
+	}
+
+	return wallet, nil
+}
+
+func RestoreWallet(password, mnemonic string) (*utils.Wallet, error) {
+	wallet, err := utils.RestoreWallet(password, mnemonic)
+	if err != nil {
+		return nil, fmt.Errorf("error restoring wallet: %v", err)
+	}
+
+	return wallet, nil
 }
 
 func main() {
@@ -28,11 +40,33 @@ func main() {
 
 		switch command {
 		case "create-wallet":
-			fmt.Println("Enter password:")
+			fmt.Println("Enter password: ")
 			scanner.Scan()
 			password := strings.TrimSpace(scanner.Text())
-			wallet = createWallet(password)
+			var err error
+			wallet, err = createWallet(password)
+			if err != nil {
+				fmt.Println("Error creating wallet:", err)
+				break
+			}
 			fmt.Println("Wallet created successfully")
+
+		case "restore-wallet":
+			fmt.Println("Enter password: ")
+			scanner.Scan()
+			password := strings.TrimSpace(scanner.Text())
+			fmt.Println("Enter mnemonic: ")
+			scanner.Scan()
+			mnemonic := strings.TrimSpace(scanner.Text())
+			fmt.Println("mnemonic: ", mnemonic)
+			var err error
+			wallet, err = RestoreWallet(password, mnemonic)
+			if err != nil {
+				fmt.Println("Error restoring wallet:", err)
+				break
+			}
+
+			fmt.Println("Wallet restored successfully")
 
 		case "create-eth-account":
 			if wallet == nil {
