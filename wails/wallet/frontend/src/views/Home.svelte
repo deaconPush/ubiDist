@@ -1,5 +1,6 @@
 <script lang="ts">
     import ethLogo from '../assets/images/eth-logo.png';
+    import { GetBalance } from '../../wailsjs/go/main/App';
     let balance: number = 0;
     let ethBalance: number = 180;
 </script>
