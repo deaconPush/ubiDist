@@ -9,7 +9,7 @@ import (
 )
 
 type ETHAccount struct {
-	token     string
+	Token     string
 	publicKey *ecdsa.PublicKey
 }
 
@@ -20,7 +20,7 @@ func NewETHAccount(masterKey *bip32.Key, token string) (*ETHAccount, error) {
 	}
 	publicKey := privateKey.Public().(*ecdsa.PublicKey)
 	return &ETHAccount{
-		token:     token,
+		Token:     token,
 		publicKey: publicKey,
 	}, nil
 
@@ -28,4 +28,13 @@ func NewETHAccount(masterKey *bip32.Key, token string) (*ETHAccount, error) {
 
 func (account *ETHAccount) GetAddress() string {
 	return crypto.PubkeyToAddress(*account.publicKey).Hex()
+}
+
+func (account *ETHAccount) RetrieveBalance(network string) (string, error) {
+	balance, err := GetBalance(network, account.GetAddress())
+	if err != nil {
+		return "", fmt.Errorf("error retrieving balance: %v", err)
+	}
+
+	return balance, nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"wallet/internal/utils"
 
 	"github.com/tyler-smith/go-bip39"
@@ -34,15 +35,13 @@ func (a *App) CreateWallet(password string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error creating wallet: %v", err)
 	}
+
 	a.wallet = wallet
+	err = wallet.Initialize(password)
 	if err != nil {
-		return "", fmt.Errorf("error saving HDKey: %v", err)
+		return "", fmt.Errorf("error initializing wallet: %v", err)
 	}
-	ethAccount, err := wallet.CreateETHAccount()
-	if err != nil {
-		return "", fmt.Errorf("error creating ETH account: %v", err)
-	}
-	fmt.Println("ETH Address: ", ethAccount.GetAddress())
+
 	return mnemonic, nil
 }
 
@@ -51,6 +50,29 @@ func (a *App) RestoreWallet(password, mnemonic string) error {
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}
+
 	a.wallet = wallet
+	err = wallet.Initialize(password)
+	if err != nil {
+		return fmt.Errorf("error initializing wallet: %v", err)
+	}
+
 	return nil
+}
+
+func (a *App) GetBalance() map[string]float64 {
+	assets := map[string]float64{
+		"ETH": 0,
+	}
+	var err error
+
+	assets["ETH"], err = a.wallet.GetTokenBalance("ETH", "hardhat")
+
+	if err != nil {
+		log.Printf("error getting balance: %v", err)
+	}
+
+	fmt.Printf("Assets: %v", assets)
+
+	return assets
 }
