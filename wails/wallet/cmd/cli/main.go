@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"wallet/internal/currencies/eth"
 	"wallet/internal/utils"
@@ -27,11 +28,21 @@ func RestoreWallet(password, mnemonic string) (*utils.Wallet, error) {
 	return wallet, nil
 }
 
+func GetBalance(wallet *utils.Wallet, token, network string) (string, error) {
+	balanceFloat, err := wallet.GetTokenBalance("ETH", network)
+	if err != nil {
+		return "", fmt.Errorf("error getting account: %v", err)
+	}
+
+	balanceStr := strconv.FormatFloat(balanceFloat, 'f', 4, 64)
+
+	return balanceStr, nil
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	var wallet *utils.Wallet = nil
-	var ethAccount *eth.ETHAccount = nil
-	provider := "http://127.0.0.1:8545"
+	provider := "hardhat"
 
 	for {
 		fmt.Println("Enter a command or (type 'exit' to quit):")
@@ -49,6 +60,13 @@ func main() {
 				fmt.Println("Error creating wallet:", err)
 				break
 			}
+
+			err = wallet.Initialize(password)
+			if err != nil {
+				fmt.Println("Error initializing wallet:", err)
+				break
+			}
+
 			fmt.Println("Wallet created successfully")
 
 		case "restore-wallet":
@@ -66,20 +84,17 @@ func main() {
 				break
 			}
 
-			fmt.Println("Wallet restored successfully")
-
-		case "create-eth-account":
-			if wallet == nil {
-				fmt.Println("Wallet not found")
+			err = wallet.Initialize(password)
+			if err != nil {
+				fmt.Println("Error initializing wallet:", err)
 				break
 			}
-			ethAccount, _ = wallet.CreateETHAccount()
-			fmt.Println("Account created")
-			fmt.Println("ETH Address: ", ethAccount.GetAddress())
 
-		case "get-eth-balance":
-			if ethAccount == nil {
-				fmt.Println("ETH account not found")
+			fmt.Println("Wallet restored successfully")
+
+		case "get-token-balance":
+			if wallet == nil {
+				fmt.Println("Wallet not found")
 				break
 			}
 
@@ -87,15 +102,16 @@ func main() {
 				fmt.Println("Node is not listening")
 				break
 			}
-
-			fmt.Println("Getting ETH balance from address: ", ethAccount.GetAddress())
-			hexBalance, err := eth.GetBalance(provider, ethAccount.GetAddress())
+			fmt.Println("Enter token name: ")
+			scanner.Scan()
+			token := strings.TrimSpace(scanner.Text())
+			balance, err := GetBalance(wallet, token, provider)
 			if err != nil {
 				fmt.Println("Failed to get balance: ", err)
 				break
 			}
-			balance, _ := eth.HexToEther(hexBalance)
-			fmt.Println("ETH Balance: ", balance)
+
+			fmt.Printf("Balance for %s token: %s\n", token, balance)
 
 		case "exit":
 			fmt.Println("Exiting...")

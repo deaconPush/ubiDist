@@ -17,6 +17,10 @@ import (
 	"github.com/google/uuid"
 )
 
+var networks = map[string]string{
+	"hardhat": "http://127.0.0.1:8545",
+}
+
 type Transaction struct {
 	Nonce    uint64
 	GasPrice *big.Int
@@ -36,7 +40,12 @@ type RPCPayload struct {
 	ID      string        `json:"id"`
 }
 
-func sendRPCRequest(payload RPCPayload, url string) (map[string]interface{}, error) {
+func sendRpcRequestToNode(payload RPCPayload, network string) (map[string]interface{}, error) {
+	url, ok := networks[network]
+	if !ok {
+		return nil, fmt.Errorf("network not found")
+	}
+
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
@@ -70,7 +79,7 @@ func NetListening(provider string) bool {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return false
 	}
@@ -86,7 +95,7 @@ func GetGasPrice(provider string) (*big.Int, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get gas price: %w", err)
 	}
@@ -103,7 +112,7 @@ func GetNonce(provider string, address string) (uint64, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get nonce: %w", err)
 	}
@@ -128,7 +137,7 @@ func EstimateGas(provider string, from string, to string, value *big.Int) (uint6
 		ID: uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return 0, fmt.Errorf("failed to estimate gas: %w", err)
 	}
@@ -146,7 +155,7 @@ func GetChainId(provider string) (int64, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return -1, fmt.Errorf("failed to get chain ID: %w", err)
 	}
@@ -199,7 +208,7 @@ func ProcessTransaction(provider string, from string, to string, value *big.Int,
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
@@ -249,7 +258,7 @@ func ProcessTransactionWithNativeSigning(provider string, from string, to string
 		Params:  []interface{}{rawTxHex},
 		ID:      uuid.New().String(),
 	}
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
@@ -265,7 +274,7 @@ func GetBalance(provider string, address string) (string, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return "", fmt.Errorf("failed to get balance: %w", err)
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"wallet/internal/currencies/eth"
 
 	"github.com/tyler-smith/go-bip32"
@@ -14,35 +15,45 @@ import (
 
 type Wallet struct {
 	publicKey *bip32.Key
+	Accounts  map[string]interface{}
+}
+
+var TokenTypesMap = map[string]interface{}{
+	"ETH": &eth.ETHAccount{},
 }
 
 func (w *Wallet) retrieveRootKey() (*bip32.Key, error) {
 	rootFile, err := os.Open("wallet.json")
-
 	if err != nil {
 		return nil, fmt.Errorf("error opening wallet file: %v", err)
 	}
 
 	defer rootFile.Close()
 
+	pubKeyData, err := w.publicKey.Serialize()
+	if err != nil {
+		return nil, fmt.Errorf("error serializing public key: %v", err)
+	}
+
+	pubKeyHexData := hex.EncodeToString(pubKeyData)
 	keyBytes, err := io.ReadAll(rootFile)
 	if err != nil {
 		return nil, fmt.Errorf("error reading wallet file: %v", err)
 	}
 
-	var result map[string]interface{}
+	result := map[string]string{}
 	json.Unmarshal(keyBytes, &result)
-	keyHex, ok := result["HDKey"].(string)
+	keyData, ok := result[pubKeyHexData]
 	if !ok {
-		return nil, fmt.Errorf("error reading HDKey from wallet file")
+		return nil, fmt.Errorf("error retrieving HDKey from wallet file")
 	}
 
-	keyData, err := hex.DecodeString(keyHex)
+	keyDataBytes, err := hex.DecodeString(keyData)
 	if err != nil {
-		return nil, fmt.Errorf("error decoding HDKey from wallet file: %v", err)
+		return nil, fmt.Errorf("error decoding key data: %v", err)
 	}
 
-	masterKey, err := bip32.Deserialize(keyData)
+	masterKey, err := bip32.Deserialize(keyDataBytes)
 	if err != nil {
 		return nil, fmt.Errorf("error deserializing HDKey from wallet file: %v", err)
 	}
@@ -50,14 +61,27 @@ func (w *Wallet) retrieveRootKey() (*bip32.Key, error) {
 	return masterKey, nil
 }
 
-func saveHDKey(key *bip32.Key) error {
-	keyData, err := key.Serialize()
+func saveHDKey(masterKey, pubKey *bip32.Key) error {
+	masterKeyData, err := masterKey.Serialize()
+	if err != nil {
+		return fmt.Errorf("error serializing master Key: %v", err)
+	}
+
+	pubKeyData, err := pubKey.Serialize()
+	if err != nil {
+		return fmt.Errorf("error serializing master public key: %v", err)
+	}
+
+	masterKeyHexData := hex.EncodeToString(masterKeyData)
+	pubKeyHexData := hex.EncodeToString(pubKeyData)
 	filename := "wallet.json"
+
 	if err != nil {
 		return fmt.Errorf("error serializing HDKey: %v", err)
 	}
+
 	var data = map[string]interface{}{
-		"HDKey": hex.EncodeToString(keyData),
+		pubKeyHexData: masterKeyHexData,
 	}
 	keyBytes, err := json.Marshal(data)
 	if err != nil {
@@ -68,6 +92,7 @@ func saveHDKey(key *bip32.Key) error {
 	if err != nil {
 		return fmt.Errorf("error writing HDKey to file: %v", err)
 	}
+
 	return nil
 }
 
@@ -82,14 +107,8 @@ func CreateWallet(password string) (*Wallet, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("error recovering master key from seed:: %v", err)
 	}
-
-	err = saveHDKey(masterKey)
-	if err != nil {
-		return nil, "", fmt.Errorf("error saving HDKey: %v", err)
-	}
-
 	pubKey := masterKey.PublicKey()
-	err = saveHDKey(masterKey)
+	err = saveHDKey(masterKey, pubKey)
 	if err != nil {
 		return nil, "", fmt.Errorf("error saving HDKey: %v", err)
 	}
@@ -104,13 +123,8 @@ func RestoreWallet(password string, mnemonic string) (*Wallet, error) {
 		return nil, fmt.Errorf("error recovering master key from seed: %v", err)
 	}
 
-	err = saveHDKey(masterKey)
-	if err != nil {
-		return nil, fmt.Errorf("error saving HDKey: %v", err)
-	}
-
 	pubKey := masterKey.PublicKey()
-	err = saveHDKey(masterKey)
+	err = saveHDKey(masterKey, pubKey)
 	if err != nil {
 		return nil, fmt.Errorf("error saving HDKey: %v", err)
 	}
@@ -118,7 +132,18 @@ func RestoreWallet(password string, mnemonic string) (*Wallet, error) {
 	return &Wallet{publicKey: pubKey}, nil
 }
 
-func (w *Wallet) CreateETHAccount() (*eth.ETHAccount, error) {
+func (w *Wallet) Initialize(password string) error {
+	var err error
+	w.Accounts = make(map[string]interface{})
+	w.Accounts["ETH"], err = w.CreateETHAccount(password)
+	if err != nil {
+		return fmt.Errorf("error creating ETH account: %v", err)
+	}
+
+	return nil
+}
+
+func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
 	masterKey, err := w.retrieveRootKey()
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving root key: %v", err)
@@ -134,4 +159,41 @@ func (w *Wallet) CreateETHAccount() (*eth.ETHAccount, error) {
 		return nil, fmt.Errorf("error creating ETH account: %v", err)
 	}
 	return ethAccount, nil
+}
+
+func (w *Wallet) GetTokenBalance(tokenName, network string) (float64, error) {
+	account, ok := w.Accounts[tokenName]
+	if !ok {
+		return 0, fmt.Errorf("account not found")
+	}
+
+	expectedType, ok := TokenTypesMap[tokenName]
+	if !ok {
+		return 0, fmt.Errorf("token type not found")
+	}
+
+	switch expectedType.(type) {
+	case *eth.ETHAccount:
+		fmt.Println("retrieving ETH balance")
+		ethAccount := account.(*eth.ETHAccount)
+		hexBalance, err := ethAccount.RetrieveBalance(network)
+		if err != nil {
+			return 0, fmt.Errorf("error retrieving balance: %v", err)
+		}
+
+		balanceStr, err := eth.HexToEther(hexBalance)
+		if err != nil {
+			return 0, fmt.Errorf("error converting balance: %v", err)
+		}
+
+		balance, err := strconv.ParseFloat(balanceStr, 64)
+		if err != nil {
+			return 0, fmt.Errorf("error parsing balance: %v", err)
+		}
+
+		return balance, nil
+
+	default:
+		return 0, fmt.Errorf("token type not found")
+	}
 }
