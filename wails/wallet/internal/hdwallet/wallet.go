@@ -1,4 +1,4 @@
-package utils
+package hdwallet
 
 import (
 	"encoding/hex"
@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"wallet/internal/currencies/eth"
+	"wallet/internal/utils"
 
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
@@ -15,11 +16,13 @@ import (
 
 type Wallet struct {
 	publicKey *bip32.Key
-	Accounts  map[string]interface{}
+	Accounts  map[string]Account
 }
 
-var TokenTypesMap = map[string]interface{}{
-	"ETH": &eth.ETHAccount{},
+type Account interface {
+	GetAddress() string
+	RetrieveBalance(network string) (string, error)
+	GetTokenName() string
 }
 
 func (w *Wallet) retrieveRootKey() (*bip32.Key, error) {
@@ -97,7 +100,7 @@ func saveHDKey(masterKey, pubKey *bip32.Key) error {
 }
 
 func CreateWallet(password string) (*Wallet, string, error) {
-	mnemonic, err := GenerateMnemonic()
+	mnemonic, err := utils.GenerateMnemonic()
 	if err != nil {
 		return nil, "", fmt.Errorf("error generating mnemonic: %v", err)
 	}
@@ -134,7 +137,7 @@ func RestoreWallet(password string, mnemonic string) (*Wallet, error) {
 
 func (w *Wallet) Initialize(password string) error {
 	var err error
-	w.Accounts = make(map[string]interface{})
+	w.Accounts = make(map[string]Account)
 	w.Accounts["ETH"], err = w.CreateETHAccount(password)
 	if err != nil {
 		return fmt.Errorf("error creating ETH account: %v", err)
@@ -149,7 +152,7 @@ func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
 		return nil, fmt.Errorf("error retrieving root key: %v", err)
 	}
 
-	ethKey, err := DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
+	ethKey, err := utils.DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
 	if err != nil {
 		return nil, fmt.Errorf("error deriving ETH key: %v", err)
 	}
@@ -162,38 +165,14 @@ func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
 }
 
 func (w *Wallet) GetTokenBalance(tokenName, network string) (float64, error) {
-	account, ok := w.Accounts[tokenName]
-	if !ok {
-		return 0, fmt.Errorf("account not found")
-	}
-
-	expectedType, ok := TokenTypesMap[tokenName]
-	if !ok {
-		return 0, fmt.Errorf("token type not found")
-	}
-
-	switch expectedType.(type) {
-	case *eth.ETHAccount:
-		fmt.Println("retrieving ETH balance")
-		ethAccount := account.(*eth.ETHAccount)
-		hexBalance, err := ethAccount.RetrieveBalance(network)
-		if err != nil {
-			return 0, fmt.Errorf("error retrieving balance: %v", err)
+	for _, account := range w.Accounts {
+		if account.GetTokenName() == tokenName {
+			balance, err := account.RetrieveBalance(network)
+			if err != nil {
+				return 0, fmt.Errorf("error retrieving balance: %v", err)
+			}
+			return strconv.ParseFloat(balance, 64)
 		}
-
-		balanceStr, err := eth.HexToEther(hexBalance)
-		if err != nil {
-			return 0, fmt.Errorf("error converting balance: %v", err)
-		}
-
-		balance, err := strconv.ParseFloat(balanceStr, 64)
-		if err != nil {
-			return 0, fmt.Errorf("error parsing balance: %v", err)
-		}
-
-		return balance, nil
-
-	default:
-		return 0, fmt.Errorf("token type not found")
 	}
+	return 0, fmt.Errorf("token not found: %s", tokenName)
 }
