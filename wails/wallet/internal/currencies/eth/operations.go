@@ -17,10 +17,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var networks = map[string]string{
-	"hardhat": "http://127.0.0.1:8545",
-}
-
 type Transaction struct {
 	Nonce    uint64
 	GasPrice *big.Int
@@ -40,12 +36,7 @@ type RPCPayload struct {
 	ID      string        `json:"id"`
 }
 
-func sendRpcRequestToNode(payload RPCPayload, network string) (map[string]interface{}, error) {
-	url, ok := networks[network]
-	if !ok {
-		return nil, fmt.Errorf("network not found")
-	}
-
+func sendRpcRequestToNode(payload RPCPayload, url string) (map[string]interface{}, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)

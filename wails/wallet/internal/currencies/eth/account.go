@@ -8,6 +8,12 @@ import (
 	"github.com/tyler-smith/go-bip32"
 )
 
+var providers = map[string]string{
+	"hardhat": "http://localhost:8545",
+}
+
+const defaultNetwork = "hardhat"
+
 type ETHAccount struct {
 	tokenName string
 	publicKey *ecdsa.PublicKey
@@ -31,7 +37,12 @@ func (account *ETHAccount) GetAddress() string {
 }
 
 func (account *ETHAccount) RetrieveBalance(network string) (string, error) {
-	balance, err := GetBalance(network, account.GetAddress())
+	if network == "" {
+		network = defaultNetwork
+	}
+	provider := providers[network]
+
+	balance, err := GetBalance(provider, account.GetAddress())
 	if err != nil {
 		return "", fmt.Errorf("error retrieving balance: %v", err)
 	}
