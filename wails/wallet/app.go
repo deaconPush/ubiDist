@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"wallet/internal/hdwallet"
 
 	"github.com/tyler-smith/go-bip39"
@@ -60,19 +59,15 @@ func (a *App) RestoreWallet(password, mnemonic string) error {
 	return nil
 }
 
-func (a *App) GetBalance() map[string]float64 {
-	assets := map[string]float64{
-		"ETH": 0,
+func (a *App) GetAssets(tokens []string) map[string]float64 {
+	var assets = make(map[string]float64)
+	for _, token := range tokens {
+		balance, err := a.wallet.GetTokenBalance(token)
+		if err != nil {
+			fmt.Println("error getting balance for token:", err)
+		}
+
+		assets[token] = balance
 	}
-	var err error
-
-	assets["ETH"], err = a.wallet.GetTokenBalance("ETH", "hardhat")
-
-	if err != nil {
-		log.Printf("error getting balance: %v", err)
-	}
-
-	fmt.Printf("Assets: %v", assets)
-
 	return assets
 }
