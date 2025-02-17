@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"strings"
 	"wallet/internal/currencies/eth"
-	"wallet/internal/utils"
+	"wallet/internal/hdwallet"
 )
 
-func createWallet(password string) (*utils.Wallet, error) {
-	wallet, _, err := utils.CreateWallet(password)
+func createWallet(password string) (*hdwallet.Wallet, error) {
+	wallet, _, err := hdwallet.CreateWallet(password)
 	if err != nil {
 		return nil, fmt.Errorf("error creating wallet: %v", err)
 	}
@@ -19,8 +19,8 @@ func createWallet(password string) (*utils.Wallet, error) {
 	return wallet, nil
 }
 
-func RestoreWallet(password, mnemonic string) (*utils.Wallet, error) {
-	wallet, err := utils.RestoreWallet(password, mnemonic)
+func RestoreWallet(password, mnemonic string) (*hdwallet.Wallet, error) {
+	wallet, err := hdwallet.RestoreWallet(password, mnemonic)
 	if err != nil {
 		return nil, fmt.Errorf("error restoring wallet: %v", err)
 	}
@@ -28,7 +28,7 @@ func RestoreWallet(password, mnemonic string) (*utils.Wallet, error) {
 	return wallet, nil
 }
 
-func GetBalance(wallet *utils.Wallet, token, network string) (string, error) {
+func GetBalance(wallet *hdwallet.Wallet, token, network string) (string, error) {
 	balanceFloat, err := wallet.GetTokenBalance("ETH", network)
 	if err != nil {
 		return "", fmt.Errorf("error getting account: %v", err)
@@ -41,7 +41,7 @@ func GetBalance(wallet *utils.Wallet, token, network string) (string, error) {
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	var wallet *utils.Wallet = nil
+	var wallet *hdwallet.Wallet = nil
 	provider := "hardhat"
 
 	for {

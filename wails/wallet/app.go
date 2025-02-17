@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"wallet/internal/utils"
+	"wallet/internal/hdwallet"
 
 	"github.com/tyler-smith/go-bip39"
 )
@@ -12,7 +12,7 @@ import (
 // App struct
 type App struct {
 	ctx    context.Context
-	wallet *utils.Wallet
+	wallet *hdwallet.Wallet
 }
 
 // NewApp creates a new App application struct
@@ -31,7 +31,7 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 }
 
 func (a *App) CreateWallet(password string) (string, error) {
-	wallet, mnemonic, err := utils.CreateWallet(password)
+	wallet, mnemonic, err := hdwallet.CreateWallet(password)
 	if err != nil {
 		return "", fmt.Errorf("error creating wallet: %v", err)
 	}
@@ -46,7 +46,7 @@ func (a *App) CreateWallet(password string) (string, error) {
 }
 
 func (a *App) RestoreWallet(password, mnemonic string) error {
-	wallet, err := utils.RestoreWallet(password, mnemonic)
+	wallet, err := hdwallet.RestoreWallet(password, mnemonic)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}

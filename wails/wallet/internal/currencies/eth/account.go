@@ -9,18 +9,18 @@ import (
 )
 
 type ETHAccount struct {
-	Token     string
+	tokenName string
 	publicKey *ecdsa.PublicKey
 }
 
-func NewETHAccount(masterKey *bip32.Key, token string) (*ETHAccount, error) {
+func NewETHAccount(masterKey *bip32.Key, tokenName string) (*ETHAccount, error) {
 	privateKey, err := crypto.ToECDSA(masterKey.Key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert master key to ECDSA: %w", err)
 	}
 	publicKey := privateKey.Public().(*ecdsa.PublicKey)
 	return &ETHAccount{
-		Token:     token,
+		tokenName: tokenName,
 		publicKey: publicKey,
 	}, nil
 
@@ -37,4 +37,8 @@ func (account *ETHAccount) RetrieveBalance(network string) (string, error) {
 	}
 
 	return balance, nil
+}
+
+func (account *ETHAccount) GetTokenName() string {
+	return account.tokenName
 }
