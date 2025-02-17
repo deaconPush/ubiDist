@@ -16,7 +16,7 @@ import (
 
 type Wallet struct {
 	publicKey *bip32.Key
-	Accounts  map[string]Account
+	Accounts  []Account
 }
 
 type Account interface {
@@ -136,13 +136,12 @@ func RestoreWallet(password string, mnemonic string) (*Wallet, error) {
 }
 
 func (w *Wallet) Initialize(password string) error {
-	var err error
-	w.Accounts = make(map[string]Account)
-	w.Accounts["ETH"], err = w.CreateETHAccount(password)
+	ethAccount, err := w.CreateETHAccount(password)
 	if err != nil {
 		return fmt.Errorf("error creating ETH account: %v", err)
 	}
 
+	w.Accounts = append(w.Accounts, ethAccount)
 	return nil
 }
 
@@ -164,15 +163,30 @@ func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
 	return ethAccount, nil
 }
 
-func (w *Wallet) GetTokenBalance(tokenName, network string) (float64, error) {
+func (w *Wallet) GetTokenBalance(tokenName string, options ...string) (float64, error) {
+	var network string = ""
+	if len(options) > 0 {
+		network = options[0]
+	}
 	for _, account := range w.Accounts {
 		if account.GetTokenName() == tokenName {
-			balance, err := account.RetrieveBalance(network)
+			hexBalance, err := account.RetrieveBalance(network)
 			if err != nil {
 				return 0, fmt.Errorf("error retrieving balance: %v", err)
 			}
+
+			balance, err := eth.HexToEther(hexBalance)
+			if err != nil {
+				return 0, fmt.Errorf("error converting balance: %v", err)
+			}
+
 			return strconv.ParseFloat(balance, 64)
 		}
 	}
 	return 0, fmt.Errorf("token not found: %s", tokenName)
+}
+
+func (w *Wallet) GetAccounts() []Account {
+	return w.Accounts
+
 }
