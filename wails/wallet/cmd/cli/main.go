@@ -29,7 +29,7 @@ func RestoreWallet(password, mnemonic string) (*hdwallet.Wallet, error) {
 }
 
 func GetBalance(wallet *hdwallet.Wallet, token, network string) (string, error) {
-	balanceFloat, err := wallet.GetTokenBalance("ETH", network)
+	balanceFloat, err := wallet.GetTokenBalance(token, network)
 	if err != nil {
 		return "", fmt.Errorf("error getting account: %v", err)
 	}
