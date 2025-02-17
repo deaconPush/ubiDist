@@ -6,8 +6,8 @@ export function CreateWallet(arg1) {
   return window['go']['main']['App']['CreateWallet'](arg1);
 }
 
-export function GetBalance() {
-  return window['go']['main']['App']['GetBalance']();
+export function GetAssets() {
+  return window['go']['main']['App']['GetAssets']();
 }
 
 export function RestoreWallet(arg1, arg2) {
