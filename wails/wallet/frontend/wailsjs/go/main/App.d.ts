@@ -3,7 +3,7 @@
 
 export function CreateWallet(arg1:string):Promise<string>;
 
-export function GetAssets():Promise<{[key: string]: number}>;
+export function GetAssets(arg1:Array<string>):Promise<{[key: string]: number}>;
 
 export function RestoreWallet(arg1:string,arg2:string):Promise<void>;
 
