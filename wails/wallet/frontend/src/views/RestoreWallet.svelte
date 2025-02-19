@@ -1,11 +1,22 @@
 <script lang="ts">
-    import { ValidateMnemonic, RestoreWallet } from '../../wailsjs/go/main/App'    
+    import { RestoreWallet } from '../../wailsjs/go/main/App'    
+    import ProgressBar from '../components/ProgressBar.svelte';
     import SeedRecovery from '../components/SeedRecovery.svelte';
     import CreatePassword from '../components/CreatePassword.svelte';
+    import { currentView } from '../stores';
+
     
     let seedPhrase: string = ''
     let seedPhraseBlocks: number = 12;
     let showSeedRecovery: boolean = true;
+    let currentStep: number = 0;
+    const steps: string[] = ["Seed Recovery", "Create Password"];
+
+    function nextStep(): void {
+    if (currentStep < steps.length - 1) {
+        currentStep += 1;
+    }
+    }
 
     function restoreWallet(): void {
         const passwordInput = document.getElementById('wallet-password') as HTMLInputElement;
@@ -17,12 +28,13 @@
         const password = passwordInput.value;
         RestoreWallet(password, seedPhrase)
         .then(() => {
-            console.log("Wallet restored");
+            currentView.set('Home');
         })
         .catch((error) => {
             console.error(error);
         });
     }
+
     function confirmRecoveryPhrase(): void {
         const inputs = document.querySelectorAll('.seed-phrase-block') as NodeListOf<HTMLInputElement>;
         if (!inputs) {
@@ -31,30 +43,27 @@
         }
         
         seedPhrase = Array.from(inputs).map(input => input.value.trim()).join(' ');
-        ValidateMnemonic(seedPhrase).then(isValid => {
-            if(isValid) {
-                showSeedRecovery = false;
-            } else {
-                console.error('Invalid seed phrase');
-            }
-        })
-    }
+        nextStep();    
+        }
 </script>
 
 
 <main>
-    {#if showSeedRecovery}
+    <ProgressBar 
+    steps={steps} 
+    currentStep={currentStep} 
+    />
+    {#if currentStep === 0}
         <SeedRecovery 
         seedPhraseBlocks={seedPhraseBlocks}
         onConfirm={confirmRecoveryPhrase}
         />
-    {:else}
+    {:else if currentStep === 1}
         <CreatePassword 
             handleClick={restoreWallet}
             walletLabel="Restore Wallet"
         />
     {/if}
-    
 </main>
 
 <style>
