@@ -1,8 +1,44 @@
 <script lang="ts">
-    import ethLogo from '../assets/images/eth-logo.png';
-    import { GetBalance } from '../../wailsjs/go/main/App';
+    import { GetAssets } from  '../../wailsjs/go/main/App'
+
+    
+    const tokens: object = {
+        'ETH': 'Ethereum'
+    };
     let balance: number = 0;
-    let ethBalance: number = 180;
+    
+    type Asset = {
+        balance: number;
+        symbol: string;
+        name: string;
+        logoPath: string;
+    };
+    let assets: Asset[] = [];
+
+    function getLogoPath(symbol: string): string {
+        return `src/assets/logos/${symbol}.png`;
+    }
+
+    function initAssets(): void {
+        const tokenSymbols = Object.keys(tokens);
+        console.log("token Symbols: ", tokenSymbols);
+        GetAssets(tokenSymbols)
+        .then((assetsData) => {
+            assets = Object.keys(assetsData).map((symbol) => (
+                {
+                    balance: assetsData[symbol],
+                    symbol: symbol,
+                    name: tokens[symbol],
+                    logoPath: getLogoPath(symbol)
+                }
+            ))
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }
+
+    initAssets();
 </script>
 
 <main>
@@ -18,13 +54,14 @@
         <h4 id="assets-title">Assets</h4>
         <div class="assets-list">
             <div class="asset">
-                <img src={ethLogo} alt="eth logo">
-                <div class="coin-description-container">
-                    <h6 class="coin-description-symbol">ETH</h6>
-                    <h5 class="coin-description-name">Ethereum</h5>
-                </div>
-                <h3 class="coin-balance">{ethBalance}</h3>
-            </div>
+                {#each assets as asset}
+                    <img src={asset.logoPath} alt={asset.symbol} />
+                    <div class="coin-description-container">
+                        <h6 class="coin-description-symbol">{asset.symbol}</h6>
+                        <h5 class="coin-description-name">{asset.name}</h5>
+                    </div>
+                    <h3 class="coin-balance">{asset.balance}</h3>
+                {/each}
          </div>
     </div>
 </main>
