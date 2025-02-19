@@ -59,9 +59,9 @@ func (a *App) RestoreWallet(password, mnemonic string) error {
 	return nil
 }
 
-func (a *App) GetAssets(tokens []string) map[string]float64 {
+func (a *App) GetAssets(tokenSymbols []string) map[string]float64 {
 	var assets = make(map[string]float64)
-	for _, token := range tokens {
+	for _, token := range tokenSymbols {
 		balance, err := a.wallet.GetTokenBalance(token)
 		if err != nil {
 			fmt.Println("error getting balance for token:", err)
