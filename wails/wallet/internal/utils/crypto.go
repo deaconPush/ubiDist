@@ -6,7 +6,10 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"fmt"
+	"strconv"
+	"strings"
 
+	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/scrypt"
 )
@@ -92,4 +95,47 @@ func deriveKey(password, salt []byte) ([]byte, []byte, error) {
 	}
 
 	return key, salt, nil
+}
+
+func DeriveChildKey(masterKey *bip32.Key, path string) (*bip32.Key, error) {
+	indices, err := parseDerivationPath(path)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing derivation path: %v", err)
+	}
+	key := masterKey
+	for _, index := range indices {
+		key, err = key.NewChildKey(index)
+		if err != nil {
+			return nil, fmt.Errorf("error deriving child key: %v", err)
+		}
+	}
+	return key, nil
+}
+
+func parseDerivationPath(path string) ([]uint32, error) {
+	var indices []uint32
+	var hardenedOffset uint32 = 0x80000000
+	for _, part := range strings.Split(path, "/") {
+		if part == "m" {
+			continue
+		}
+
+		hardened := strings.HasSuffix(part, "'")
+		if hardened {
+			part = part[:len(part)-1]
+		}
+
+		parsedIndex, err := strconv.ParseUint(part, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing derivation path: %v", err)
+		}
+		index := uint32(parsedIndex)
+
+		if hardened {
+			index += hardenedOffset
+		}
+
+		indices = append(indices, index)
+	}
+	return indices, nil
 }

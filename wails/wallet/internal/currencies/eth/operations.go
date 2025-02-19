@@ -1,4 +1,4 @@
-package currencies
+package eth
 
 import (
 	"bytes"
@@ -36,7 +36,7 @@ type RPCPayload struct {
 	ID      string        `json:"id"`
 }
 
-func sendRPCRequest(payload RPCPayload, url string) (map[string]interface{}, error) {
+func sendRpcRequestToNode(payload RPCPayload, url string) (map[string]interface{}, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
@@ -62,6 +62,22 @@ func sendRPCRequest(payload RPCPayload, url string) (map[string]interface{}, err
 	return response, nil
 }
 
+func NetListening(provider string) bool {
+	payload := RPCPayload{
+		Jsonrpc: "2.0",
+		Method:  "net_listening",
+		Params:  []interface{}{},
+		ID:      uuid.New().String(),
+	}
+
+	response, err := sendRpcRequestToNode(payload, provider)
+	if err != nil {
+		return false
+	}
+
+	return response["result"].(bool)
+}
+
 func GetGasPrice(provider string) (*big.Int, error) {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
@@ -70,7 +86,7 @@ func GetGasPrice(provider string) (*big.Int, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get gas price: %w", err)
 	}
@@ -87,7 +103,7 @@ func GetNonce(provider string, address string) (uint64, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get nonce: %w", err)
 	}
@@ -112,7 +128,7 @@ func EstimateGas(provider string, from string, to string, value *big.Int) (uint6
 		ID: uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return 0, fmt.Errorf("failed to estimate gas: %w", err)
 	}
@@ -130,7 +146,7 @@ func GetChainId(provider string) (int64, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return -1, fmt.Errorf("failed to get chain ID: %w", err)
 	}
@@ -183,7 +199,7 @@ func ProcessTransaction(provider string, from string, to string, value *big.Int,
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
@@ -233,7 +249,7 @@ func ProcessTransactionWithNativeSigning(provider string, from string, to string
 		Params:  []interface{}{rawTxHex},
 		ID:      uuid.New().String(),
 	}
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
@@ -249,7 +265,7 @@ func GetBalance(provider string, address string) (string, error) {
 		ID:      uuid.New().String(),
 	}
 
-	response, err := sendRPCRequest(payload, provider)
+	response, err := sendRpcRequestToNode(payload, provider)
 	if err != nil {
 		return "", fmt.Errorf("failed to get balance: %w", err)
 	}
@@ -316,4 +332,19 @@ func HexToEther(hexBalance string) (string, error) {
 	ether.Quo(ether, big.NewFloat(1e18))
 
 	return ether.String(), nil
+}
+
+func EtherToWei(ether string) (*big.Int, error) {
+	etherFloat, _, err := new(big.Float).Parse(ether, 10)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ether: %w", err)
+	}
+
+	wei := new(big.Int)
+	etherInt := new(big.Int)
+	etherFloat.Mul(etherFloat, big.NewFloat(1e18))
+	etherFloat.Int(etherInt)
+	wei.Set(etherInt)
+
+	return wei, nil
 }
