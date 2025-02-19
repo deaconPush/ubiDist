@@ -6,6 +6,10 @@ export function CreateWallet(arg1) {
   return window['go']['main']['App']['CreateWallet'](arg1);
 }
 
+export function GetAssets(arg1) {
+  return window['go']['main']['App']['GetAssets'](arg1);
+}
+
 export function RestoreWallet(arg1, arg2) {
   return window['go']['main']['App']['RestoreWallet'](arg1, arg2);
 }

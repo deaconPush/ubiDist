@@ -2,17 +2,16 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
-	"wallet/internal/utils"
+	"wallet/internal/hdwallet"
 
-	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx    context.Context
+	wallet *hdwallet.Wallet
 }
 
 // NewApp creates a new App application struct
@@ -31,28 +30,44 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 }
 
 func (a *App) CreateWallet(password string) (string, error) {
-	mnemonic, err := utils.GenerateMnemonic()
+	wallet, mnemonic, err := hdwallet.CreateWallet(password)
 	if err != nil {
-		return "", fmt.Errorf("error generating mnemonic: %v", err)
+		return "", fmt.Errorf("error creating wallet: %v", err)
 	}
 
-	seed := bip39.NewSeed(mnemonic, "")
-	masterKey, err := bip32.NewMasterKey(seed)
+	a.wallet = wallet
+	err = wallet.Initialize(password)
 	if err != nil {
-		return "", fmt.Errorf("error recovering master key from seed:: %v", err)
+		return "", fmt.Errorf("error initializing wallet: %v", err)
 	}
 
-	fmt.Println("public key: ", hex.EncodeToString(masterKey.PublicKey().Key))
 	return mnemonic, nil
 }
 
-func (a *App) RestoreWallet(password string, mnemonic string) error {
-	seed := bip39.NewSeed(mnemonic, "")
-	masterKey, err := bip32.NewMasterKey(seed)
+func (a *App) RestoreWallet(password, mnemonic string) error {
+	wallet, err := hdwallet.RestoreWallet(password, mnemonic)
 	if err != nil {
-		return fmt.Errorf("error recovering master key from seed: %v", err)
+		return fmt.Errorf("error saving HDKey: %v", err)
 	}
 
-	fmt.Println("public key: ", hex.EncodeToString(masterKey.PublicKey().Key))
+	a.wallet = wallet
+	err = wallet.Initialize(password)
+	if err != nil {
+		return fmt.Errorf("error initializing wallet: %v", err)
+	}
+
 	return nil
+}
+
+func (a *App) GetAssets(tokenSymbols []string) map[string]float64 {
+	var assets = make(map[string]float64)
+	for _, token := range tokenSymbols {
+		balance, err := a.wallet.GetTokenBalance(token)
+		if err != nil {
+			fmt.Println("error getting balance for token:", err)
+		}
+
+		assets[token] = balance
+	}
+	return assets
 }
