@@ -9,7 +9,9 @@
   function checkPasswordStrength(): void {
     const passwordInput = document.getElementById('wallet-password') as HTMLInputElement;
     const passwordStrengthContainer = document.getElementById('password-strength') as HTMLParagraphElement;
-    if (!passwordInput || !passwordStrengthContainer) {
+    const createPasswordButton = document.getElementById('create-password-button') as HTMLButtonElement;
+
+    if (!passwordInput || !passwordStrengthContainer || !createPasswordButton) {
       console.error('Password input or strength container not found');
       return;
     }
@@ -19,11 +21,17 @@
     passwordStrengthContainer.style.display = 'block';
     if (isPasswordStrong) {
       passwordStrengthContainer.textContent = 'Password strength: Strong';
-    } else if (password.length > 0 &&  !isPasswordStrong) {
+    }
+    
+    if (password.length > 0 &&  !isPasswordStrong) {
       passwordStrengthContainer.textContent = 'Password strength: Weak';
-    } else {
+      createPasswordButton.disabled = true;
+    } 
+
+    if (password.length === 0) {
       passwordStrengthContainer.textContent = '';
       passwordStrengthContainer.style.display = 'none';
+      createPasswordButton.disabled = true;
     }
   }
   
@@ -40,17 +48,21 @@
     const password: string = passwordInput.value;
     const isPasswordStrong = isPasswordValid(password);
     const confirmPassword: string = confirmPasswordInput.value;
-    if (password !== confirmPassword) {
+    if (password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword) {
       passwordMatchContainer.style.display = 'block';
       passwordMatchContainer.textContent = 'Passwords do not match';
-    } else {
+      createPasswordButton.disabled = true;
+    } 
+
+    if (isPasswordStrong && password === confirmPassword) {
         passwordMatchContainer.textContent = '';
         passwordMatchContainer.style.display = 'none';
-      }
-    
-    if (isPasswordStrong && password === confirmPassword) {
       createPasswordButton.disabled = false;
-      createPasswordButton.style.backgroundColor = 'black';
+    }
+
+    if (confirmPassword.length === 0) {
+      passwordMatchContainer.textContent = '';
+      passwordMatchContainer.style.display = 'none';
     }
   }   
 </script>
@@ -99,8 +111,7 @@ p {
   align-items: center;
   align-content: center;
   gap: 2px;
-  width: 100%;
-  max-width: 400px;
+  width: 50%;
   background-color: #fff;
   padding: 5px;
   margin-top: 0px;
@@ -122,11 +133,12 @@ label {
 }
 
 input {
-  padding: 4px;
+  padding: 2px;
+  margin-bottom: 5px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
-  max-width: 190px;
+  max-width: 80px;
   color: #333;
   background-color: #fefefe;
 }
@@ -150,8 +162,7 @@ input:focus {
   font-family: "Nunito", sans-serif;
   font-weight: bold;
   width: 60%;
-  margin-top:15px;
-  height: 25px;
+  margin-top: 15px;
   border-radius: 25px;
   cursor: pointer;
   border: none;
@@ -174,13 +185,14 @@ input:focus {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 1024px)  {
   h2 {
-    font-size: 1.8rem;
+    font-size: 0.8rem;
   }
 
   .form-container {
     padding: 15px;
+    width: 25%;
   }
 
   #create-password-button {
@@ -188,20 +200,20 @@ input:focus {
   }
 }
 
-@media (max-width: 480px) {
+@media (min-width: 480px) and (max-width: 1023px) {
   h2 {
     font-size: 1.5rem;
   }
 
-  label,
-  input,
-  #create-password-button {
-    font-size: 0.9rem;
+  .form-container {
+    padding: 15px;
+    width: 40%;
   }
 
-  .form-container {
-    gap: 15px;
+  #create-password-button {
+    width: 60%;
   }
 }
+
 </style>
     
