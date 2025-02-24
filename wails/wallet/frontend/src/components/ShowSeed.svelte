@@ -22,18 +22,19 @@
         { /each }
     </div>
 </div>
-<div class="toggle-seedphrase-container">
+<div class="toggle-seedphrase-container" >
     <img 
     src={showSeedPhrase ? hide : display} 
+    on:click={toggleSeedPhraseVisibility}
     id="eye-icon"
     alt="eye toggle icon"
-    on:click={toggleSeedPhraseVisibility}
     />
-    <span 
-    id="toggle-seed-phrase-span" 
-    on:click={toggleSeedPhraseVisibility}>
+    <span
+    id="toggle-seed-phrase-span"
+    on:click={toggleSeedPhraseVisibility}
+    >
     {showSeedPhrase ? 'Hide seed phrase' : "Reveal seed phrase"}
-</span>
+    </span>
 </div>
 <div class="next-button-container">
     <button id="next-button" on:click={onConfirm}>Next</button>
@@ -108,6 +109,7 @@ h3 {
     gap: 2px; 
     width: 100%;
     margin-left: -230px;
+    cursor: pointer;
 }
 
 .toggle-seedphrase-container span {
@@ -122,9 +124,9 @@ h3 {
 }
 
 .toggle-seedphrase-container img {
+    cursor: 'pointer';
     height: 20px;
     width: 20px;
-    cursor: pointer;
 }
 .next-button-container {
     margin-top: -15px;
@@ -148,73 +150,97 @@ h3 {
     transition: background-color 0.3s ease;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1025px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(100px, 1fr));
-        column-gap: 20px; 
+        grid-template-columns: repeat(3, minmax(55%, 1fr));
+        column-gap: 15%; 
+        row-gap: 20%;
     }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    h4 {
+        font-size: 1.3rem;
+    }
+
+    .toggle-seedphrase-container{
+        margin-left: -15%;
+        margin-top: 6%;
+    }
+
     #next-button {
-        max-width: 250px;
+        width: 7%;
     }
     #eye-icon {
-        width: 15px;
-        height: 15px;
+        width: 2%;
+        height: 100%;
     }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) and (max-width: 1024px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr)); 
-        column-gap: 40px;
-        max-width: 300px;
+        grid-template-columns: repeat(3, minmax(54%, 1fr)); 
+        column-gap: 15%;
+        row-gap: 15%;
     }
 
     .seed-phrase-block {
+        width: 50%;
         justify-content: center;
         align-items: center;
     }
 
-    h3, h4 {
-        font-size: 1.2rem;
-        margin-top: 10px;
-    }
-
-    #next-button {
-        max-width: 200px;
-    }
-
-    .toggle-seedphrase-container{
-        margin-left: -120px;
-    }
-
-    #eye-icon{
-        height: 22px;
-        width: 22px;
-    }
-}
-
-@media (max-width: 480px) {
-    .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr));
-        column-gap: 40px;
-    }
-
     h3 {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
     }
 
     h4 {
-        font-size: 1rem;
+        font-size: 1.3rem;
     }
 
     #next-button {
-        max-width: 100%; 
-        padding: 10px 15px;
+        width: 13%;
+    }
+
+    .toggle-seedphrase-container{
+        margin-left: -15%;
+        margin-top: 12%;
     }
 
     #eye-icon{
-        height: 15px;
-        width: 15px;
+        height: 100%;
+        width: 3%;
     }
+}
+
+@media (min-width: 480px) and (max-width: 768px) {
+    .seed-words-container {
+        grid-template-columns: repeat(3, minmax(50%, 1fr));
+        column-gap: 15%;
+        margin-right: -4%;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    h4 {
+        font-size: 1.3rem;
+    }
+
+    #next-button {
+        width: 22%;
+    }
+
+    #eye-icon{
+        width: 4%;
+        height: 100%;
+    }
+
+    .toggle-seedphrase-container span{
+        font-size: 1rem;
+     }
 }
 </style>
