@@ -149,13 +149,12 @@ h4 {
     padding: 12px 20px;
     margin-top: 15px;
     background-color: #0066cc;
-    max-width: 300px;
     font-family: "Nunito";
     font-weight: bold;
     color: #fff; 
     border-radius: 20px;
     border: none;
-    width: 100%;
+    width: 25%;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -184,68 +183,49 @@ h4 {
     transition: opacity 0.3s ease-in-out;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 769px) {
     .seed-words-container {
         grid-template-columns: repeat(3, minmax(100px, 1fr));
-        column-gap: 20px; 
+        height: 40%;
+        column-gap:  8%
     }
 
-    #confirm-recovery-button {
-        max-width: 250px;
+    h4 {
+        font-size: 1.3rem;
     }
 
     .eye-icon {
-        right: -10px;  
-        width: 15px;
-        height: 15px;
+        right: -15%;  
+        width: 20%;
+        height: 40%;
+    }
+
+    #confirm-recovery-button {
+        width: 20%;
+        height: 80%;
     }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 481px) and (max-width: 768px) {
     .seed-words-container {
         grid-template-columns: repeat(3, minmax(80px, 1fr)); 
         column-gap: 40px;
     }
 
-    h3, h4 {
+     h4 {
         font-size: 1.2rem;
         margin-top: 10px;
     }
 
     #confirm-recovery-button {
-        max-width: 200px;
+        width: 30%;
     }
 
     .eye-icon {
-        right: -14px; 
-        width: 22px;
-        height: 22px;
+        right: -15%; 
+        width: 20%;
+        height: 60%
     }
 }
 
-@media (max-width: 480px) {
-    .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr));
-        column-gap: 40px;
-    }
-
-    h3 {
-        font-size: 1.5rem;
-    }
-
-    h4 {
-        font-size: 1rem;
-    }
-
-    #confirm-recovery-button {
-        max-width: 100%; 
-        padding: 10px 15px;
-    }
-
-    .eye-icon {
-        right: -8px; /* Further reduce for mobile */
-        width: 30px;
-        height: 30px;
-    }
-}
 </style>
