@@ -148,39 +148,77 @@ h4 {
     transition: opacity 0.3s ease-in-out;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1500px) {
+    .header-content  {
+        margin-top: 1.2%;
+    }
+
+    .header-content h4 {
+        font-size: 1.4rem;
+    }
+
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(100px, 1fr));
-        column-gap: 20px; 
-        max-width: 340px;
+        grid-template-columns: repeat(3, minmax(58%, 1fr));
+        column-gap: 20%;
+        row-gap: 35%;
+        height: 35%;
+        margin-top: 0.7%;
+        margin-right: 5%;
+    }
+
+    h4 {
+        font-size: 1.3rem;
     }
 
     #confirm-seed-button {
-        max-width: 250px;
+        margin-top: -0.8%;
+        width: 10%;
     }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 900px) and (max-width: 1500px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr)); 
-        column-gap: 40px;
-        max-width: 300px;
+        grid-template-columns: repeat(3, minmax(50%, 1fr)); 
+        column-gap: 20%;
+        row-gap: 20%;
+        margin-left: 3%;
+        margin-top: 1%;
     }
 
     h4 {
         font-size: 1.2rem;
-        margin-top: 10px;
     }
 
     #confirm-seed-button {
-        max-width: 200px;
+        width: 15%;
+        margin-top: 12%;
     }
 }
 
-@media (max-width: 480px) {
+@media (min-width: 600px) and (max-width: 900px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr));
-        column-gap: 40px;
+        grid-template-columns: repeat(3, minmax(50%, 1fr)); 
+        column-gap: 20%;
+        row-gap: 20%;
+        margin-left: 3%;
+        margin-top: 1%;
+    }
+
+    h4 {
+        font-size: 1.2rem;
+    }
+
+    #confirm-seed-button {
+        margin-top: 15%;
+        width: 25%;
+    }
+}
+
+@media (max-width: 600px)  {
+    .seed-words-container {
+        grid-template-columns: repeat(3, minmax(45%, 1fr));
+        column-gap: 25%;
+        margin-left: 12%;
     }
 
     h4 {
@@ -188,8 +226,9 @@ h4 {
     }
 
     #confirm-seed-button {
-        max-width: 100%; 
-        padding: 10px 15px;
+        width: 25%;
+        margin-top: 16%;
+        
     }
 }
 </style>
