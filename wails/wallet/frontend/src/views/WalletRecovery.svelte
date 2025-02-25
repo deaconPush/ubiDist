@@ -71,7 +71,7 @@
       font-size: 1rem;
     }
 
-    @media (min-width: 950px) and (max-width: 2048px) {
+    @media (min-width: 950px)  {
       #logo {
         width: 50%;
         height: 80vh;
