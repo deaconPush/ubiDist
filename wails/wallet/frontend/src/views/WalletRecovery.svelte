@@ -25,15 +25,10 @@
     #logo {
       background-color: #A6B057;
       display: block;
-      width: 40%;
-      height: 40%;
       margin: auto;
-      margin-bottom: -4%;
       margin-top: -8%;
-      padding: 10% 0 0;
+      padding: 20% 0 0;
       background-position: center;
-      background-repeat: no-repeat;
-      background-origin: content-box;
     }
 
     h3 {
@@ -45,20 +40,20 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 0.9vh;
     }
   
     #create-wallet-button {
       text-align: center; 
       justify-content: center;
-      width: 17%;
+      width: 18%;
       color: #FDE024;
       background-color:  black;
       font-family: "Nunito";
       font-style: normal;
       font-weight: bold;
-      height:40px;
-      border-radius: 30px;
+      height:4vh;
+      border-radius: 3vh;
       font-size: 1rem;
     }
   
@@ -71,61 +66,89 @@
       font-style: normal;
       font-weight: bold;
       width: 17%;
-      height:40px;
-      border-radius: 30px;
+      height: 4vh;
+      border-radius: 3vh;
       font-size: 1rem;
     }
 
-    @media (min-width:769px) and (max-width: 1536px) {
+    @media (min-width: 950px) and (max-width: 2048px) {
       #logo {
-        width: 60%;
-        margin-bottom: -4%;
+        width: 50%;
+        height: 80vh;
+        padding-bottom: 5%;
+        margin-bottom: -10%;
+        margin-top: -19%;
       }
 
       h3 {
         font-size: 1.3rem;
       }
 
+      .wallet-buttons{
+        gap: 1.5vh;
+      }
+
       #create-wallet-button {
-        width: 30%;
+        width: 14%;
         font-size: 1rem;
       }
 
       #import-existing-button {
-        width: 30%;
+        width: 14%;
         font-size: 1rem;
      }
     }
 
-    @media (min-width: 300px) and (max-width: 768px) {
+    @media  (min-width: 600px) and (max-width: 950px) {
       #logo {
         width: 55%;
-        margin-bottom: -4%;
+        margin-bottom: -7%;
       }
 
       h3 {
         font-size: 1.2rem;
       }
 
+      .wallet-buttons {
+        gap: 1.5vh;
+      }
+
       #create-wallet-button {
-        width: 32%;
-        font-size: 0.9rem
+        width: 31%;
+        font-size: 0.9rem;
+        height: 6vh;
 
       }
 
       #import-existing-button {
-        width: 32%;
+        width: 31%;
+        height: 6vh;
         font-size: 0.9rem;
       }
     }
 
-    @media (max-width: 350px) {
+    @media (min-width: 300px) and (max-width: 600px) {
       #logo {
-        width: 40%;
+        width: 55%;
+
+      }
+
+      h3 {
+        font-size: 1.1rem;
+      }
+
+      .wallet-buttons {
+        gap: 2.5vh;
       }
 
       #create-wallet-button {
-        background-color: blue;
+        width: 40%;
+        height: 7vh;
+      }
+
+      #import-existing-button {
+        width: 40%;
+        height: 7vh;
       }
     }
   
