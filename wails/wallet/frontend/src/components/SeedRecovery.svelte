@@ -89,22 +89,17 @@
 <style>
 
 h4 {
-    margin-top: 20px;
+    margin-top: 4vh;
     color: #333; 
     text-align: center; 
-    padding: 0 10px;
+    padding: 0 5%;
 }
 
 .seed-words-container {
     display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr)); 
-    column-gap: 50px; 
-    row-gap: 15px; 
     justify-items: center;
     align-items: space-between;
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 480px; 
+    margin-bottom: 3vh;
 }
 
 .input-wrapper {
@@ -183,11 +178,12 @@ h4 {
     transition: opacity 0.3s ease-in-out;
 }
 
-@media (min-width: 769px) {
+
+@media (min-width: 1800px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(100px, 1fr));
-        height: 40%;
-        column-gap:  8%
+        grid-template-columns: repeat(3, minmax(25%, 1fr));
+        height: 35%;
+        column-gap:  11%
     }
 
     h4 {
@@ -195,26 +191,61 @@ h4 {
     }
 
     .eye-icon {
-        right: -15%;  
-        width: 20%;
-        height: 40%;
+        right: -4%;  
+        width: 17%;
+        height: 3.5vh;
+    }
+
+    .confirm-recovery-button-container{
+        margin-top: -1.5vh;
     }
 
     #confirm-recovery-button {
-        width: 20%;
-        height: 80%;
+        width: 12%;
+        height: 6vh;
+    }
+}
+
+
+
+@media (min-width: 769px) and (max-width: 1800px) {
+    .seed-words-container {
+        grid-template-columns: repeat(3, minmax(25%, 1fr));
+        height: 35%;
+        column-gap:  11%
+    }
+
+    h4 {
+        font-size: 1.3rem;
+    }
+
+    .eye-icon {
+        right: -4%;  
+        width: 17%;
+        height: 3.5vh;
+    }
+
+    .confirm-recovery-button-container{
+        margin-top: -1.5vh;
+    }
+
+    #confirm-recovery-button {
+        width: 25%;
+        height: 6vh;
     }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr)); 
-        column-gap: 40px;
+        grid-template-columns: repeat(3, minmax(15%, 1fr)); 
+        column-gap: 10%;
+        row-gap: 2.5vh;
+        width: 80%;
     }
 
      h4 {
-        font-size: 1.2rem;
-        margin-top: 10px;
+        font-size: 1.1rem;
+        margin-top: 2vh;
     }
 
     #confirm-recovery-button {
