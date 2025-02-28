@@ -74,7 +74,7 @@ main {
         color: black;
         background-color: #f9f9f9; 
         height: 100vh;
-        padding: 20px;
+        padding: 5%;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -82,23 +82,22 @@ main {
 
     .balance-container h4 {
         font-weight: bold;
-        margin-top: -5px;
+        margin-top: -1vh;
         font-size: 1rem;
-        margin-right: 300px;
+        margin-right: 75%;
 
     }
 
     .balance-container h2 {
-        margin-right: 300px;
+        margin-right: 85%;
     }
 
     .balance-container {
         background: #fefefe;
-        padding: 20px;
-        border-radius: 12px;
+        padding: 5%;
+        border-radius: 3vh;
         text-align: center;
-        width: 90%;
-        max-width: 400px;
+        width: 73%;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
@@ -106,11 +105,11 @@ main {
         background: #0066cc;
         color: #fff;
         border: none;
-        padding: 10px 15px;
-        margin: 5px;
-        width: 180px;
+        padding: 3% 2%;
+        margin: 1vh;
+        width: 45%;
         justify-content: center;
-        border-radius: 8px;
+        border-radius: 2vh;
         cursor: pointer;
         transition: background 0.3s;
     }
@@ -120,12 +119,11 @@ main {
     }
 
     .assets-container {
-        margin-top: 15px;
-        width: 90%;
-        padding: 5px 20px;
-        max-width: 400px;
-        margin: 25px;
-        border-radius: 12px;
+        margin-top: 5vh;
+        width: 75%;
+        padding: 1% 4%;
+        margin: 5%;
+        border-radius: 3vh;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         background: #fefefe;
         transition: background 0.3s;
@@ -134,32 +132,31 @@ main {
 
     #assets-title {
         font-weight: bold;
-        margin-right: 350px;
-        margin-top: 5px;
+        margin-right: 85%;
+        margin-top: 1vh;
 
     
     }
 
     .assets-list {
-        padding: 1px;
-        margin-top: -8px;
-        border-radius: 12px;
-
+        padding: 0.2%;
+        margin-top: -3%;
+        border-radius: 3vh;
     }
 
     .asset {
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        padding: 1px;
-        margin-top: 10px;
+        padding: 0.2%;
+        margin-top: 2vh;
         border-bottom: 1.5px solid #ccc;
     }
 
     .asset img {
-        width: 30px;
-        height: 30px;
-        margin-right: 10px;
+        width: 10%;
+        height: 6vh;
+        margin-right: 3%;
     }
     
     .coin-description-container {
@@ -182,7 +179,7 @@ main {
     .coin-balance {
         font-size: 1.1rem;
         font-weight: bold;
-        margin-left:240px;
+        margin-left: 63%;
     }
 
   
