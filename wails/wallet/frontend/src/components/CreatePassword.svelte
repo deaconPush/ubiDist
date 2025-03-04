@@ -9,7 +9,9 @@
   function checkPasswordStrength(): void {
     const passwordInput = document.getElementById('wallet-password') as HTMLInputElement;
     const passwordStrengthContainer = document.getElementById('password-strength') as HTMLParagraphElement;
-    if (!passwordInput || !passwordStrengthContainer) {
+    const createPasswordButton = document.getElementById('create-password-button') as HTMLButtonElement;
+
+    if (!passwordInput || !passwordStrengthContainer || !createPasswordButton) {
       console.error('Password input or strength container not found');
       return;
     }
@@ -19,11 +21,17 @@
     passwordStrengthContainer.style.display = 'block';
     if (isPasswordStrong) {
       passwordStrengthContainer.textContent = 'Password strength: Strong';
-    } else if (password.length > 0 &&  !isPasswordStrong) {
+    }
+    
+    if (password.length > 0 &&  !isPasswordStrong) {
       passwordStrengthContainer.textContent = 'Password strength: Weak';
-    } else {
+      createPasswordButton.disabled = true;
+    } 
+
+    if (password.length === 0) {
       passwordStrengthContainer.textContent = '';
       passwordStrengthContainer.style.display = 'none';
+      createPasswordButton.disabled = true;
     }
   }
   
@@ -40,17 +48,21 @@
     const password: string = passwordInput.value;
     const isPasswordStrong = isPasswordValid(password);
     const confirmPassword: string = confirmPasswordInput.value;
-    if (password !== confirmPassword) {
+    if (password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword) {
       passwordMatchContainer.style.display = 'block';
       passwordMatchContainer.textContent = 'Passwords do not match';
-    } else {
+      createPasswordButton.disabled = true;
+    } 
+
+    if (isPasswordStrong && password === confirmPassword) {
         passwordMatchContainer.textContent = '';
         passwordMatchContainer.style.display = 'none';
-      }
-    
-    if (isPasswordStrong && password === confirmPassword) {
       createPasswordButton.disabled = false;
-      createPasswordButton.style.backgroundColor = 'black';
+    }
+
+    if (confirmPassword.length === 0) {
+      passwordMatchContainer.textContent = '';
+      passwordMatchContainer.style.display = 'none';
     }
   }   
 </script>
@@ -78,19 +90,19 @@
 <style>
 .header-content {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 0.5vh;
 }
 
 h2 {
   font-size: 2rem;
   color: #0066cc;
-  margin-bottom: 5px;
+  margin-bottom: 0.5vh;
 }
 
 p {
   font-size: 1rem;
   color: #555;
-  margin-bottom: 20px;
+  margin-bottom: 1.5vh;
 }
 
 .form-container {
@@ -98,20 +110,17 @@ p {
   flex-direction: column;
   align-items: center;
   align-content: center;
-  gap: 2px;
-  width: 100%;
-  max-width: 400px;
+  gap: 1vh;
+  width: 50%;
   background-color: #fff;
-  padding: 5px;
-  margin-top: 0px;
-  border-radius: 10px;
+  border-radius: 8%;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 2vh;
   align-items: center;
 }
 
@@ -122,13 +131,24 @@ label {
 }
 
 input {
-  padding: 4px;
+  padding: 2px;
+  margin-bottom: 0.5vh;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  max-width: 190px;
+  border-radius: 0.8vh;
   color: #333;
   background-color: #fefefe;
+  height: 2.5vh;
+}
+
+#wallet-password {
+  width: 45%;
+
+}
+
+#confirm-password {
+  width: 80%;
+
 }
 
 input:focus {
@@ -150,9 +170,8 @@ input:focus {
   font-family: "Nunito", sans-serif;
   font-weight: bold;
   width: 60%;
-  margin-top:15px;
-  height: 25px;
-  border-radius: 25px;
+  margin-top: 3vh;
+  border-radius: 5vh;
   cursor: pointer;
   border: none;
   transition: background-color 0.3s ease;
@@ -174,34 +193,65 @@ input:focus {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 1024px)  {
   h2 {
-    font-size: 1.8rem;
+    font-size: 0.8rem;
   }
 
   .form-container {
-    padding: 15px;
+    padding: 3%;
+    width: 25%;
   }
+
+  #wallet-password {
+    width: 35%;
+  }
+  
+
+
 
   #create-password-button {
-    height: 40px;
+    height: 4vh;
   }
+
+
 }
 
-@media (max-width: 480px) {
+@media (min-width: 600px) and (max-width: 1023px) {
   h2 {
     font-size: 1.5rem;
   }
 
-  label,
-  input,
+  .form-container {
+    padding: 3%;
+    width: 40%;
+  }
+
   #create-password-button {
-    font-size: 0.9rem;
+    width: 59%;
+    height: 4vh;
+  }
+}
+
+@media (max-width: 600px) {
+  h2 {
+    font-size: 1.5rem;
   }
 
   .form-container {
-    gap: 15px;
+    padding: 3%;
+    width: 40%;
+  }
+
+  #confirm-password {
+    width: 55%;
+  }
+
+  #create-password-button {
+    width: 90%;
+    height: 6vh;
   }
 }
+
 </style>
     

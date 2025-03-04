@@ -22,18 +22,19 @@
         { /each }
     </div>
 </div>
-<div class="toggle-seedphrase-container">
+<div class="toggle-seedphrase-container" >
     <img 
     src={showSeedPhrase ? hide : display} 
+    on:click={toggleSeedPhraseVisibility}
     id="eye-icon"
     alt="eye toggle icon"
-    on:click={toggleSeedPhraseVisibility}
     />
-    <span 
-    id="toggle-seed-phrase-span" 
-    on:click={toggleSeedPhraseVisibility}>
+    <span
+    id="toggle-seed-phrase-span"
+    on:click={toggleSeedPhraseVisibility}
+    >
     {showSeedPhrase ? 'Hide seed phrase' : "Reveal seed phrase"}
-</span>
+    </span>
 </div>
 <div class="next-button-container">
     <button id="next-button" on:click={onConfirm}>Next</button>
@@ -43,33 +44,30 @@
 <style>
 .header-content {
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 2vh;
 }
 
 h4 {
     font-size: 2rem;
-    margin-bottom: 5px;
+    margin-bottom:1vh;
     font-weight: bold;
     color: #0066cc;
 }
 
 h3 {
     font-size: 1rem;
-    margin-bottom: 5px;
+    margin-bottom: -1vh;
 }
 
 
 .seed-words-container {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr)); 
-    column-gap: 50px; 
-    row-gap: 15px; 
+    display: grid;  
     justify-items: center;
     align-items: center;
-    margin-top: 10px;
-    margin-bottom: 16px;
-    width: 100%;
-    max-width: 480px; 
+    margin-top: 2vh;
+    margin-bottom: 1.5vh;
+    width: 55%;
+    margin-left: 6.5%;
 }
 
 .seed-words-container .hidden{
@@ -81,12 +79,12 @@ h3 {
 }
 
 .seed-phrase-block {
-    width: 75%; 
-    font-size: 15px;
+    width: 65%; 
+    font-size: 1.1rem;
     background-color: #fff; 
     border: 1px solid #ccc;
-    border-radius: 7px;
-    height: 40px;
+    border-radius: 1vh;
+    height: 4vh;
     font-family: "Nunito";
     padding: 0 35px 0 10px;
     color: #333; 
@@ -105,9 +103,10 @@ h3 {
     display: flex;
     align-items: center; 
     justify-content: center;
-    gap: 2px; 
+    gap: 0.5vh; 
     width: 100%;
-    margin-left: -230px;
+    margin-left: -30%;
+    cursor: pointer;
 }
 
 .toggle-seedphrase-container span {
@@ -122,99 +121,154 @@ h3 {
 }
 
 .toggle-seedphrase-container img {
-    height: 20px;
-    width: 20px;
-    cursor: pointer;
+    cursor: 'pointer';
+    height: 100%;
+    width: 5vh;
 }
 .next-button-container {
-    margin-top: -15px;
+    margin-top: 2%;
     display: flex;
     justify-content: center;
     width: 100%;
 }
 
 #next-button {
-    padding: 12px 20px;
-    margin-top: 40px;
+    padding: 0.5% 0.5%;
     background-color: #0066cc;
-    max-width: 300px;
     font-family: "Nunito";
     font-weight: bold;
     color: #fff;
-    border-radius: 20px;
+    border-radius: 4vh;
     border: none;
     width: 100%;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1500px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(100px, 1fr));
-        column-gap: 20px; 
+        grid-template-columns: repeat(3, minmax(55%, 1fr));
+        column-gap: 15%; 
+        row-gap: 20%;
     }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    h4 {
+        font-size: 1.3rem;
+    }
+
+    .toggle-seedphrase-container{
+        margin-left: -15%;
+        margin-top: 6%;
+    }
+
+    .toggle-seedphrase-container span {
+        font-size: 1.1rem;
+    }
+
     #next-button {
-        max-width: 250px;
+        width: 7%;
+        font-size: 1rem;
     }
     #eye-icon {
-        width: 15px;
-        height: 15px;
+        width: 2%;
+        height: 100%;
     }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) and (max-width: 1500px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr)); 
-        column-gap: 40px;
-        max-width: 300px;
+        grid-template-columns: repeat(3, minmax(65%, 1fr)); 
+        column-gap: 30%;
+        row-gap: 18%;
+        margin-left: -8%;
     }
 
     .seed-phrase-block {
+        width: 65%;
         justify-content: center;
         align-items: center;
     }
 
-    h3, h4 {
-        font-size: 1.2rem;
-        margin-top: 10px;
-    }
-
-    #next-button {
-        max-width: 200px;
-    }
-
-    .toggle-seedphrase-container{
-        margin-left: -120px;
-    }
-
-    #eye-icon{
-        height: 22px;
-        width: 22px;
-    }
-}
-
-@media (max-width: 480px) {
-    .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr));
-        column-gap: 40px;
-    }
-
     h3 {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
     }
 
     h4 {
-        font-size: 1rem;
+        font-size: 1.3rem;
+    }
+
+    .next-button-container{
+        margin-top: 2.5%;
     }
 
     #next-button {
-        max-width: 100%; 
-        padding: 10px 15px;
+        width: 13%;
+        height: 3vh;
+        font-size: 1rem; 
+    }
+
+    .toggle-seedphrase-container{
+        margin-left: -15%;
+        margin-top: 11.5%;
+    }
+
+    .toggle-seedphrase-container span {
+        font-size: 1.1rem;
     }
 
     #eye-icon{
-        height: 15px;
-        width: 15px;
+        height: 100%;
+        width: 3%;
     }
+
+
+}
+
+@media (min-width: 480px) and (max-width: 768px) {
+    .seed-words-container {
+        grid-template-columns: repeat(3, minmax(65%, 1fr));
+        column-gap: 70%;
+        row-gap: 20%;
+        margin-left: -20%;
+    }
+
+    .seed-phrase-block {
+        width: 100%;
+        height: 6;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    h4 {
+        font-size: 1.3rem;
+    }
+
+    .next-button-container{
+        margin-top: 3%;
+    }
+
+    .toggle-seedphrase-container{
+        margin-top: 13%;
+    }
+
+    #next-button {
+        width: 22%;
+        height: 5vh;
+    }
+
+    #eye-icon{
+        width: 4%;
+        height: 100%;
+    }
+
+    .toggle-seedphrase-container span{
+        font-size: 1rem;
+     }
 }
 </style>
