@@ -89,22 +89,17 @@
 <style>
 
 h4 {
-    margin-top: 20px;
+    margin-top: 4vh;
     color: #333; 
     text-align: center; 
-    padding: 0 10px;
+    padding: 0 5%;
 }
 
 .seed-words-container {
     display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr)); 
-    column-gap: 50px; 
-    row-gap: 15px; 
     justify-items: center;
     align-items: space-between;
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 480px; 
+    margin-bottom: 3vh;
 }
 
 .input-wrapper {
@@ -149,13 +144,12 @@ h4 {
     padding: 12px 20px;
     margin-top: 15px;
     background-color: #0066cc;
-    max-width: 300px;
     font-family: "Nunito";
     font-weight: bold;
     color: #fff; 
     border-radius: 20px;
     border: none;
-    width: 100%;
+    width: 25%;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -184,68 +178,85 @@ h4 {
     transition: opacity 0.3s ease-in-out;
 }
 
-@media (max-width: 1024px) {
+
+@media (min-width: 1800px) {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(100px, 1fr));
-        column-gap: 20px; 
-    }
-
-    #confirm-recovery-button {
-        max-width: 250px;
-    }
-
-    .eye-icon {
-        right: -10px;  
-        width: 15px;
-        height: 15px;
-    }
-}
-
-@media (max-width: 768px) {
-    .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr)); 
-        column-gap: 40px;
-    }
-
-    h3, h4 {
-        font-size: 1.2rem;
-        margin-top: 10px;
-    }
-
-    #confirm-recovery-button {
-        max-width: 200px;
-    }
-
-    .eye-icon {
-        right: -14px; 
-        width: 22px;
-        height: 22px;
-    }
-}
-
-@media (max-width: 480px) {
-    .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr));
-        column-gap: 40px;
-    }
-
-    h3 {
-        font-size: 1.5rem;
+        grid-template-columns: repeat(3, minmax(25%, 1fr));
+        height: 35%;
+        column-gap:  11%
     }
 
     h4 {
-        font-size: 1rem;
-    }
-
-    #confirm-recovery-button {
-        max-width: 100%; 
-        padding: 10px 15px;
+        font-size: 1.3rem;
     }
 
     .eye-icon {
-        right: -8px; /* Further reduce for mobile */
-        width: 30px;
-        height: 30px;
+        right: -4%;  
+        width: 17%;
+        height: 3.5vh;
+    }
+
+    .confirm-recovery-button-container{
+        margin-top: -1.5vh;
+    }
+
+    #confirm-recovery-button {
+        width: 12%;
+        height: 6vh;
     }
 }
+
+
+
+@media (min-width: 769px) and (max-width: 1800px) {
+    .seed-words-container {
+        grid-template-columns: repeat(3, minmax(25%, 1fr));
+        height: 35%;
+        column-gap:  11%
+    }
+
+    h4 {
+        font-size: 1.3rem;
+    }
+
+    .eye-icon {
+        right: -4%;  
+        width: 17%;
+        height: 3.5vh;
+    }
+
+    .confirm-recovery-button-container{
+        margin-top: -1.5vh;
+    }
+
+    #confirm-recovery-button {
+        width: 25%;
+        height: 6vh;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .seed-words-container {
+        grid-template-columns: repeat(3, minmax(15%, 1fr)); 
+        column-gap: 10%;
+        row-gap: 2.5vh;
+        width: 80%;
+    }
+
+     h4 {
+        font-size: 1.1rem;
+        margin-top: 2vh;
+    }
+
+    #confirm-recovery-button {
+        width: 30%;
+    }
+
+    .eye-icon {
+        right: -15%; 
+        width: 20%;
+        height: 60%
+    }
+}
+
 </style>

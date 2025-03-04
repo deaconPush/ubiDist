@@ -42,6 +42,7 @@
                     confirmButton.disabled = false;
                     validationLabel.style.display = 'none';
                 } else {
+                    confirmButton.disabled = true;
                     validationLabel.style.display = 'block';
                     validationLabel.textContent = 'Invalid seed phrase';
                 }
@@ -67,33 +68,27 @@
 
 <style>
 h4 {
-    margin-top: 20px;
+    margin-top: 3.5vh;
     color: #333; 
     text-align: center; 
-    padding: 0 10px;
+    padding: 0 2%;
 }
 
 .seed-words-container {
     display: grid;
-    grid-template-columns: repeat(3, minmax(120px, 1fr)); 
-    column-gap: 50px; 
-    row-gap: 15px; 
     justify-items: center;
     align-items: space-between;
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 480px; 
 }
 
 .seed-phrase-block {
     width: 65%; 
-    font-size: 15px;
+    font-size: 1rem;
     background-color: #fff; 
     border: 1px solid #ccc;
-    border-radius: 7px;
-    height: 40px;
+    border-radius: 1.5vh;
+    height: 6vh;
     font-family: "Nunito";
-    padding: 0 35px 0 10px;
+    padding: 0 20% 0 4%;
     color: #333; 
 }
 
@@ -108,17 +103,13 @@ h4 {
     width: 100%;
 }
 
-#confirm-seed-button {
-    padding: 12px 20px;
-    margin-top: 20px;
+#confirm-seed-button {   
     background-color: #0066cc;
-    max-width: 300px;
     font-family: "Nunito";
     font-weight: bold;
     color: #fff; 
-    border-radius: 20px;
+    border-radius: 5vh;
     border: none;
-    width: 100%;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -135,61 +126,154 @@ h4 {
 }
 
 .validation-label {
-    margin-top: -8px;
     background-color: #ffdddd; 
-    border-left: 4px solid #d9534f;
+    border-left: 1vh solid #d9534f;
     font-size: 0.9rem;
     color: #a94442; 
-    padding: 8px 12px;
-    border-radius: 5px;
+    padding: 0.8% 0.8%;
+    border-radius: 1vh;
     display: none;
-    width: fit-content;
-    max-width: 100%;
     transition: opacity 0.3s ease-in-out;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1500px) {
+    .header-content  {
+        margin-top: -0.5%;
+        width: 100%;
+    }
+
+    .header-content h4 {
+        font-size: 1.2rem;
+    }
+
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(100px, 1fr));
-        column-gap: 20px; 
-        max-width: 340px;
+        grid-template-columns: repeat(3, minmax(28%, 1fr));
+        column-gap: 10%;
+        width: 100%;
+        row-gap: 35%;
+        height: 35%;
+        margin-top: 0.2%;
+        margin-left: 55%;
+        margin-bottom: 1%;
+    }
+
+    h4 {
+        font-size: 1.3rem;
+    }
+
+    .validation-label{
+        margin-top: 3%
+        
+    }
+
+    .confirm-seed-button-container{
+        margin-top: 3%;
     }
 
     #confirm-seed-button {
-        max-width: 250px;
+        width: 8%;
+        height: 6vh
+    }
+
+    #confirm-seed-button:disabled {
+        margin-top: -2%;
     }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 900px) and (max-width: 1500px) {
+    .header-content  {
+        margin-top: 1.2%;
+    }
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr)); 
-        column-gap: 40px;
-        max-width: 300px;
+        grid-template-columns: repeat(3, minmax(45%, 1fr)); 
+        column-gap: 20%;
+        row-gap: 20%;
+        margin-left: 17%;
+        margin-bottom: 20%;
+    }
+
+
+
+    h4 {
+        font-size: 1.2rem;
+    }
+
+    .validation-label{
+        margin-top: -7%
+    }
+
+
+    #confirm-seed-button {
+        width: 16%;
+        height: 5vh;
+    }
+
+    #confirm-seed-button:disabled {
+        margin-top: 1%;
+    }
+
+    #confirm-seed-button:enabled {
+        margin-top: -4%;    
+    }
+
+}
+
+@media (min-width: 600px) and (max-width: 900px) {
+    .seed-words-container {
+        grid-template-columns: repeat(3, minmax(50%, 1fr)); 
+        column-gap: 12%;
+        row-gap: 35%;
+        height: 8vh;
+        margin-top: 1%;
+        margin-left: 10%;
+        margin-bottom: 20%;
+    }
+
+    .seed-phrase-block  {
+        width: 50%;
     }
 
     h4 {
         font-size: 1.2rem;
-        margin-top: 10px;
+    }   
+
+    .validation-label{
+        margin-top: -1%;
+        height: 2.5vh;
+        margin-bottom: 3%;
     }
 
     #confirm-seed-button {
-        max-width: 200px;
+        width: 17%;
+        height: 5vh;
     }
+
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px)  {
     .seed-words-container {
-        grid-template-columns: repeat(3, minmax(80px, 1fr));
-        column-gap: 40px;
+        grid-template-columns: repeat(3, minmax(52%, 1fr));
+        column-gap: 10%;
+        row-gap: 50%;
+        margin-left: 8%;
+        margin-bottom: 38%;
     }
 
     h4 {
         font-size: 1rem;
+    }   
+
+    .validation-label{
+        margin-top: -2%;
+        height: 4.5vh;
     }
 
     #confirm-seed-button {
-        max-width: 100%; 
-        padding: 10px 15px;
+        width: 20%;
+        height: 7vh;
     }
+
+
+    
 }
 </style>
