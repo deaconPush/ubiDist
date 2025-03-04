@@ -182,6 +182,17 @@ main {
         margin-left: 63%;
     }
 
+    @media (min-width: 1800px) {
+        .balance-container {
+            width: 40%;
+            padding: 3%;
+        }
+
+        .assets-container {
+            margin-top: 3%;
+            width: 38%;
+        }
+    }
   
   
 
