@@ -84,7 +84,7 @@ func saveHDKey(db *sql.DB, masterKey, pubKey *bip32.Key) error {
 	return nil
 }
 
-func CreateWallet(password string) (*Wallet, string, error) {
+func CreateWallet(password string, db *sql.DB) (*Wallet, string, error) {
 	mnemonic, err := utils.GenerateMnemonic()
 	if err != nil {
 		return nil, "", fmt.Errorf("error generating mnemonic: %v", err)
@@ -96,7 +96,6 @@ func CreateWallet(password string) (*Wallet, string, error) {
 		return nil, "", fmt.Errorf("error recovering master key from seed:: %v", err)
 	}
 	pubKey := masterKey.PublicKey()
-	db, err := initDB()
 	if err != nil {
 		return nil, "", fmt.Errorf("error initializing database: %v", err)
 	}
@@ -111,16 +110,11 @@ func CreateWallet(password string) (*Wallet, string, error) {
 	return &Wallet{publicKey: pubKey, db: db}, mnemonic, nil
 }
 
-func RestoreWallet(password string, mnemonic string) (*Wallet, error) {
+func RestoreWallet(password string, mnemonic string, db *sql.DB) (*Wallet, error) {
 	seed := bip39.NewSeed(mnemonic, "")
 	masterKey, err := bip32.NewMasterKey(seed)
 	if err != nil {
 		return nil, fmt.Errorf("error recovering master key from seed: %v", err)
-	}
-
-	db, err := initDB()
-	if err != nil {
-		return nil, fmt.Errorf("error initializing database: %v", err)
 	}
 
 	pubKey := masterKey.PublicKey()
@@ -140,20 +134,6 @@ func (w *Wallet) Initialize(password string) error {
 
 	w.Accounts = append(w.Accounts, ethAccount)
 	return nil
-}
-
-func initDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "wallet.db")
-	if err != nil {
-		return nil, fmt.Errorf("error opening database: %v", err)
-	}
-
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS wallets (publicKey TEXT PRIMARY KEY, masterKey TEXT)")
-	if err != nil {
-		return nil, fmt.Errorf("error creating accounts table: %v", err)
-	}
-
-	return db, nil
 }
 
 func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
