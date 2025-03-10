@@ -17,3 +17,7 @@ export function RestoreWallet(arg1, arg2) {
 export function ValidateMnemonic(arg1) {
   return window['go']['main']['App']['ValidateMnemonic'](arg1);
 }
+
+export function WalletExists() {
+  return window['go']['main']['App']['WalletExists']();
+}
