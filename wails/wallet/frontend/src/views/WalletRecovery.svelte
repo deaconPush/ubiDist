@@ -1,6 +1,23 @@
 <script lang="ts">
     import logo from '../assets/images/pear-logo.png';
     import { currentView } from "../stores";
+    import { WalletExists } from "../../wailsjs/go/main/App";
+    
+    let walletExists = false;
+  
+    function checkWallet(): void {
+      WalletExists()
+      .then((exists) => {
+        console.log("value of exists: ", exists);
+        walletExists = exists;
+        console.log("value of walletExists: ", walletExists);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    }
+
+    checkWallet();
 
     function createWallet(): void {
       currentView.set("CreateWallet");
@@ -9,15 +26,22 @@
     function importWallet(): void {
       currentView.set("RestoreWallet");
     }
+
   </script>
   
   <main>
     <img alt="Wails logo" id="logo" src="{logo}">
     <h3>Pear wallet</h3>
-    <div class="wallet-buttons">
-      <button id="create-wallet-button" on:click={createWallet}>Create a new wallet</button>
-      <button id="import-existing-button" on:click={importWallet}>Import an existing wallet</button>
-    </div>
+    {#if walletExists === false}
+      <div class="wallet-buttons">
+        <button  id="create-wallet-button" on:click={createWallet}>Create a new wallet</button>
+        <button id="import-existing-button" on:click={importWallet}>Import an existing wallet</button>
+      </div>
+    {:else}
+      <h3>Wallet Login</h3>
+      <input type="password" id="unlock-wallet-password" placeholder="Enter your password" />
+      <button id="unlock-wallet-button" >Unlock wallet</button>
+    {/if}
   </main>
   
   <style>
