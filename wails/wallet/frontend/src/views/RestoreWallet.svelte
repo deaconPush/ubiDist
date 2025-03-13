@@ -8,7 +8,6 @@
     
     let seedPhrase: string = ''
     let seedPhraseBlocks: number = 12;
-    let showSeedRecovery: boolean = true;
     let currentStep: number = 0;
     const steps: string[] = ["Seed Recovery", "Create Password"];
 
