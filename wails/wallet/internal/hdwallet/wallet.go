@@ -26,14 +26,14 @@ type Account interface {
 	GetTokenName() string
 }
 
-func (w *Wallet) retrieveRootKey() (*bip32.Key, error) {
+func (w *Wallet) retrieveRootKey(password string) (*bip32.Key, error) {
 	pubKeyData, err := w.publicKey.Serialize()
 	if err != nil {
 		return nil, fmt.Errorf("error serializing master public key: %v", err)
 	}
 	pubKeyHex := hex.EncodeToString(pubKeyData)
-	var keyData string
-	err = w.db.QueryRowContext(context.Background(), "SELECT masterKey FROM wallets where publicKey=?", pubKeyHex).Scan(&keyData)
+	var encryptedKeyData string
+	err = w.db.QueryRowContext(context.Background(), "SELECT masterKey FROM wallets where publicKey=?", pubKeyHex).Scan(&encryptedKeyData)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, fmt.Errorf("no rows returned")
@@ -41,12 +41,17 @@ func (w *Wallet) retrieveRootKey() (*bip32.Key, error) {
 		return nil, fmt.Errorf("error querying database: %v", err)
 	}
 
-	keyDataBytes, err := hex.DecodeString(keyData)
+	keyDataHex, err := utils.Decrypt([]byte(password), []byte(encryptedKeyData))
+	if err != nil {
+		return nil, fmt.Errorf("error decrypting master key %v", err)
+	}
+
+	keyData, err := hex.DecodeString(string(keyDataHex))
 	if err != nil {
 		return nil, fmt.Errorf("error decoding key data: %v", err)
 	}
 
-	masterKey, err := bip32.Deserialize(keyDataBytes)
+	masterKey, err := bip32.Deserialize(keyData)
 	if err != nil {
 		return nil, fmt.Errorf("error deserializing HDKey from wallet file: %v", err)
 	}
@@ -54,20 +59,25 @@ func (w *Wallet) retrieveRootKey() (*bip32.Key, error) {
 	return masterKey, nil
 }
 
-func saveHDKey(db *sql.DB, masterKey, pubKey *bip32.Key) error {
+func saveHDKey(password string, db *sql.DB, masterKey *bip32.Key) error {
 	masterKeyData, err := masterKey.Serialize()
 	if err != nil {
 		return fmt.Errorf("error serializing master Key: %v", err)
 	}
 
-	pubKeyData, err := pubKey.Serialize()
+	pubKeyData, err := masterKey.PublicKey().Serialize()
 	if err != nil {
 		return fmt.Errorf("error serializing master public key: %v", err)
 	}
 
-	masterKeyHexData := hex.EncodeToString(masterKeyData)
-	pubKeyHexData := hex.EncodeToString(pubKeyData)
-	result, err := db.ExecContext(context.Background(), "INSERT INTO wallets (publicKey, masterKey) VALUES (?, ?)", pubKeyHexData, masterKeyHexData)
+	masterKeyHex := hex.EncodeToString(masterKeyData)
+	encryptedMasterKeyHex, err := utils.Encrypt([]byte(password), []byte(masterKeyHex))
+	if err != nil {
+		return fmt.Errorf("error encrypting data: %v", err)
+	}
+
+	pubKeyHex := hex.EncodeToString(pubKeyData)
+	result, err := db.ExecContext(context.Background(), "INSERT INTO wallets (publicKey, masterKey) VALUES (?, ?)", pubKeyHex, encryptedMasterKeyHex)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}
@@ -101,7 +111,7 @@ func CreateWallet(password string, db *sql.DB) (*Wallet, string, error) {
 	}
 	fmt.Println("DB initialized")
 
-	err = saveHDKey(db, masterKey, pubKey)
+	err = saveHDKey(password, db, masterKey)
 	if err != nil {
 		return nil, "", fmt.Errorf("error saving HDKey: %v", err)
 	}
@@ -118,7 +128,7 @@ func RestoreWallet(password string, mnemonic string, db *sql.DB) (*Wallet, error
 	}
 
 	pubKey := masterKey.PublicKey()
-	err = saveHDKey(db, masterKey, pubKey)
+	err = saveHDKey(password, db, masterKey)
 	if err != nil {
 		return nil, fmt.Errorf("error saving HDKey: %v", err)
 	}
@@ -137,7 +147,7 @@ func (w *Wallet) Initialize(password string) error {
 }
 
 func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
-	masterKey, err := w.retrieveRootKey()
+	masterKey, err := w.retrieveRootKey(password)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving root key: %v", err)
 	}
