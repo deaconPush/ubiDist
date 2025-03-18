@@ -27,6 +27,10 @@ func GenerateMnemonic() (string, error) {
 	return mnemonic, nil
 }
 
+func ValidateMnemonic(mnemonic string) bool {
+	return bip39.IsMnemonicValid(mnemonic)
+}
+
 func Encrypt(key, data []byte) ([]byte, error) {
 	key, salt, err := deriveKey(key, nil)
 	if err != nil {
