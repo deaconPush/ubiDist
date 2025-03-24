@@ -78,36 +78,56 @@ func TestEncryption(t *testing.T) {
 }
 
 func TestChildKeyGeneration(t *testing.T) {
-	t.Run("Generate ETH default key from mnemonic", func(t *testing.T) {
-		mnemonic := "test test test test test test test test test test test junk"
-		derivationPath := "m/44'/60'/0'/0/0"
-		if !ValidateMnemonic(mnemonic) {
-			t.Errorf("Invalid mnemonic")
-		}
+	mnemonic := "test test test test test test test test test test test junk"
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		t.Errorf("Error generating master key: %v", err)
+	}
 
-		seed := bip39.NewSeed(mnemonic, "")
-		masterKey, err := bip32.NewMasterKey(seed)
-		if err != nil {
-			t.Errorf("Error generating master key: %v", err)
-		}
+	cases := []struct {
+		derivationPath string
+		masterKey      string
+		name           string
+	}{
+		{
+			"m/44'/60'/0'/0/0",
+			"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+			"Generate ETH first key from default mnemonic",
+		},
+		{
+			"m/44'/60'/0'/0/1",
+			"59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+			"Generate ETH second key from default mnemonic",
+		},
+		{
+			"m/44'/60'/0'/0/2",
+			"5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+			"Generate ETH third key from default mnemonic",
+		},
+	}
 
-		derivatedKey, err := DeriveChildKey(masterKey, derivationPath)
-		if err != nil {
-			t.Errorf("Error deriving child key: %v", err)
-		}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			derivatedKey, err := DeriveChildKey(masterKey, tc.derivationPath)
+			if err != nil {
+				t.Errorf("Error deriving child key: %v", err)
+			}
 
-		got, err := crypto.ToECDSA(derivatedKey.Key)
-		if err != nil {
-			t.Errorf("Error converting key to ECDSA: %v", err)
-		}
+			got, err := crypto.ToECDSA(derivatedKey.Key)
+			if err != nil {
+				t.Errorf("Error converting key to ECDSA: %v", err)
+			}
 
-		want, err := crypto.HexToECDSA("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-		if err != nil {
-			t.Errorf("Error converting key to ECDSA: %v", err)
-		}
+			want, err := crypto.HexToECDSA(tc.masterKey)
+			if err != nil {
+				t.Errorf("Error converting key to ECDSA: %v", err)
+			}
 
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("Derived key does not match expected key")
-		}
-	})
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("Derived key does not match expected key")
+			}
+
+		})
+	}
 }
