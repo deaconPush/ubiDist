@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+	"time"
 	"wallet/internal/hdwallet"
+	"wallet/internal/utils"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -13,18 +14,10 @@ import (
 
 // App struct
 type App struct {
-	ctx    context.Context
-	wallet *hdwallet.Wallet
-	db     *sql.DB
-}
-
-func initDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "wallet.db")
-	if err != nil {
-		return nil, fmt.Errorf("error opening database: %v", err)
-	}
-
-	return db, nil
+	ctx       context.Context
+	wallet    *hdwallet.Wallet
+	dbService *utils.DatabaseService
+	walletDB  *hdwallet.WalletStorage
 }
 
 // NewApp creates a new App application struct
@@ -36,28 +29,26 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	db, err := initDB()
+	dbCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	dbService, err := utils.NewDatabaseService(dbCtx)
 	if err != nil {
-		panic(fmt.Sprintf("error initializing database: %v", err))
+		panic(fmt.Errorf("error initializing database service: %v", err))
 	}
 
-	_, err = db.ExecContext(a.ctx, "CREATE TABLE IF NOT EXISTS wallets (publicKey TEXT PRIMARY KEY, masterKey TEXT)")
-	if err != nil {
-		panic(fmt.Sprintf("error creating accounts table: %v", err))
-	}
-
-	a.db = db
+	walletDB := hdwallet.NewWalletStorage(dbService.GetDB())
+	a.walletDB = walletDB
+	a.dbService = dbService
 }
 
 func (a *App) WalletExists() (bool, error) {
-	var count int
-	db := a.db
-	err := db.QueryRowContext(a.ctx, "SELECT COUNT(*) FROM wallets").Scan(&count)
+	exists, err := a.walletDB.WalletExists(a.ctx)
 	if err != nil {
 		return false, fmt.Errorf("error checking if wallet exists: %v", err)
 	}
 
-	return count > 0, nil
+	return exists, nil
 }
 
 func (a *App) ValidateMnemonic(mnemonic string) bool {
@@ -65,7 +56,7 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 }
 
 func (a *App) CreateWallet(password string) (string, error) {
-	wallet, mnemonic, err := hdwallet.CreateWallet(password, a.db)
+	wallet, mnemonic, err := hdwallet.CreateWallet(password, a.walletDB)
 	if err != nil {
 		return "", fmt.Errorf("error creating wallet: %v", err)
 	}
@@ -80,7 +71,7 @@ func (a *App) CreateWallet(password string) (string, error) {
 }
 
 func (a *App) RestoreWallet(password, mnemonic string) error {
-	wallet, err := hdwallet.RestoreWallet(password, mnemonic, a.db)
+	wallet, err := hdwallet.RestoreWallet(password, mnemonic, a.walletDB)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}
