@@ -24,7 +24,7 @@ type Account interface {
 	GetTokenName() string
 }
 
-func (w *Wallet) RetrieveMasterKey(password string) (*bip32.Key, error) {
+func (w *Wallet) retrieveMasterKey(password string) (*bip32.Key, error) {
 	pubKeyData, err := w.publicKey.Serialize()
 	if err != nil {
 		return nil, fmt.Errorf("error serializing master public key: %v", err)
@@ -38,7 +38,7 @@ func (w *Wallet) RetrieveMasterKey(password string) (*bip32.Key, error) {
 	return masterKey, nil
 }
 
-func StoreMasterKey(ws *WalletStorage, password string, masterKey *bip32.Key) error {
+func storeMasterKey(ws *WalletStorage, password string, masterKey *bip32.Key) error {
 	masterKeyData, err := masterKey.Serialize()
 	if err != nil {
 		return fmt.Errorf("error serializing master Key: %v", err)
@@ -76,7 +76,7 @@ func CreateWallet(password string, ws *WalletStorage) (*Wallet, string, error) {
 		return nil, "", fmt.Errorf("error recovering master key from seed:: %v", err)
 	}
 
-	StoreMasterKey(ws, password, masterKey)
+	storeMasterKey(ws, password, masterKey)
 	return &Wallet{publicKey: masterKey.PublicKey()}, mnemonic, nil
 }
 
@@ -87,7 +87,11 @@ func RestoreWallet(password string, mnemonic string, ws *WalletStorage) (*Wallet
 		return nil, fmt.Errorf("error recovering master key from seed: %v", err)
 	}
 
-	StoreMasterKey(ws, password, masterKey)
+	err = storeMasterKey(ws, password, masterKey)
+	if err != nil {
+		return nil, fmt.Errorf("error storing master key: %v", err)
+	}
+
 	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws}, nil
 }
 
