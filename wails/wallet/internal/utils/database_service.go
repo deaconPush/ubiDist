@@ -10,8 +10,8 @@ type DatabaseService struct {
 	db *sql.DB
 }
 
-func NewDatabaseService(ctx context.Context) (*DatabaseService, error) {
-	db, err := sql.Open("sqlite3", "wallet.db")
+func NewDatabaseService(ctx context.Context, filename string) (*DatabaseService, error) {
+	db, err := sql.Open("sqlite3", filename)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %v", err)
 	}

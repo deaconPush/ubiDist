@@ -32,7 +32,7 @@ func (a *App) startup(ctx context.Context) {
 	dbCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	dbService, err := utils.NewDatabaseService(dbCtx)
+	dbService, err := utils.NewDatabaseService(dbCtx, "wallet.db")
 	if err != nil {
 		panic(fmt.Errorf("error initializing database service: %v", err))
 	}
