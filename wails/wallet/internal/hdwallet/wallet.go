@@ -50,13 +50,13 @@ func StoreMasterKey(ws *WalletStorage, password string, masterKey *bip32.Key) er
 	}
 
 	masterKeyHex := hex.EncodeToString(masterKeyData)
-	encryptedMasterKeyHex, err := utils.Encrypt([]byte(password), []byte(masterKeyHex))
+	encryptedMasterKey, err := utils.Encrypt([]byte(password), []byte(masterKeyHex))
 	if err != nil {
 		return fmt.Errorf("error encrypting data: %v", err)
 	}
 
 	pubKeyHex := hex.EncodeToString(pubKeyData)
-	err = ws.SaveRootKeyToDB(password, pubKeyHex, encryptedMasterKeyHex)
+	err = ws.SaveRootKeyToDB(password, pubKeyHex, encryptedMasterKey)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}
