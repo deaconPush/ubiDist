@@ -1,8 +1,6 @@
 package hdwallet
 
 import (
-	"context"
-	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -26,34 +24,15 @@ type Account interface {
 	GetTokenName() string
 }
 
-func (w *Wallet) retrieveRootKey(password string) (*bip32.Key, error) {
+func (w *Wallet) RetrieveMasterKey(password string) (*bip32.Key, error) {
 	pubKeyData, err := w.publicKey.Serialize()
 	if err != nil {
 		return nil, fmt.Errorf("error serializing master public key: %v", err)
 	}
 	pubKeyHex := hex.EncodeToString(pubKeyData)
-	var encryptedKeyData string
-	err = w.db.QueryRowContext(context.Background(), "SELECT masterKey FROM wallets where publicKey=?", pubKeyHex).Scan(&encryptedKeyData)
-	switch {
-	case err == sql.ErrNoRows:
-		return nil, fmt.Errorf("no rows returned")
-	case err != nil:
-		return nil, fmt.Errorf("error querying database: %v", err)
-	}
-
-	keyDataHex, err := utils.Decrypt([]byte(password), []byte(encryptedKeyData))
+	masterKey, err := w.walletDB.RetrieveRootKeyFromDB(password, pubKeyHex)
 	if err != nil {
-		return nil, fmt.Errorf("error decrypting master key %v", err)
-	}
-
-	keyData, err := hex.DecodeString(string(keyDataHex))
-	if err != nil {
-		return nil, fmt.Errorf("error decoding key data: %v", err)
-	}
-
-	masterKey, err := bip32.Deserialize(keyData)
-	if err != nil {
-		return nil, fmt.Errorf("error deserializing HDKey from wallet file: %v", err)
+		return nil, fmt.Errorf("error retrieving key from DB: %v", err)
 	}
 
 	return masterKey, nil
@@ -123,9 +102,15 @@ func (w *Wallet) Initialize(password string) error {
 }
 
 func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
-	masterKey, err := w.retrieveRootKey(password)
+	pubKeyData, err := w.publicKey.Serialize()
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving root key: %v", err)
+		return nil, fmt.Errorf("error serializing master public key: %v", err)
+	}
+
+	pubKeyHex := hex.EncodeToString(pubKeyData)
+	masterKey, err := w.walletDB.RetrieveRootKeyFromDB(password, pubKeyHex)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving key from DB: %v", err)
 	}
 
 	ethKey, err := utils.DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
@@ -165,5 +150,4 @@ func (w *Wallet) GetTokenBalance(tokenName string, options ...string) (float64, 
 
 func (w *Wallet) GetAccounts() []Account {
 	return w.Accounts
-
 }

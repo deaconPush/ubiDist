@@ -3,7 +3,11 @@ package hdwallet
 import (
 	"context"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
+	"wallet/internal/utils"
+
+	"github.com/tyler-smith/go-bip32"
 )
 
 type WalletStorage struct {
@@ -24,7 +28,7 @@ func (ws *WalletStorage) WalletExists(ctx context.Context) (bool, error) {
 	return count > 0, nil
 }
 
-func (ws *WalletStorage) SaveRootKeyToDB(password string, pubKeyHex string, encryptedMasterKey []byte) error {
+func (ws *WalletStorage) SaveRootKeyToDB(password, pubKeyHex string, encryptedMasterKey []byte) error {
 	result, err := ws.db.ExecContext(context.Background(), "INSERT INTO wallets (publicKey, masterKey) VALUES (?, ?)", pubKeyHex, encryptedMasterKey)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
@@ -42,4 +46,30 @@ func (ws *WalletStorage) SaveRootKeyToDB(password string, pubKeyHex string, encr
 	return nil
 }
 
-func (ws *WalletStorage) retrieveRootKeyFromDB() {}
+func (ws *WalletStorage) RetrieveRootKeyFromDB(password, pubKeyHex string) (*bip32.Key, error) {
+	var encryptedKeyData string
+	err := ws.db.QueryRowContext(context.Background(), "SELECT masterKey FROM wallets WHERE publicKey=?", pubKeyHex).Scan(&encryptedKeyData)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("no rows returned")
+		}
+		return nil, fmt.Errorf("error querying database: %v", err)
+	}
+
+	keyDataHex, err := utils.Decrypt([]byte(password), []byte(encryptedKeyData))
+	if err != nil {
+		return nil, fmt.Errorf("error decrypting master key %v", err)
+	}
+
+	keyData, err := hex.DecodeString(string(keyDataHex))
+	if err != nil {
+		return nil, fmt.Errorf("error decoding key data: %v", err)
+	}
+
+	masterKey, err := bip32.Deserialize(keyData)
+	if err != nil {
+		return nil, fmt.Errorf("error deserializing HDKey from wallet file: %v", err)
+	}
+
+	return masterKey, nil
+}
