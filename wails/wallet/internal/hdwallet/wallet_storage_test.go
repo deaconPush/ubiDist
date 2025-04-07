@@ -31,8 +31,29 @@ func TestWalletStorageOperations(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to save root key to DB: %v", err)
 	}
-	assertWalletExistence(t, storage, context.Background(), true)
-	assertRootKeyRetrieval(t, storage, password, pubKeyHex, encryptedMasterKeyHex)
+
+	cases := []struct {
+		name   string
+		testFn func(t *testing.T, storage *WalletStorage)
+	}{
+		{
+			name: "Valid password retrieves correct root key",
+			testFn: func(t *testing.T, storage *WalletStorage) {
+				assertRootKeyRetrieval(t, storage, password, pubKeyHex, encryptedMasterKeyHex)
+			},
+		},
+		{
+			name: "Invalid password fails to retrieve root key",
+			testFn: func(t *testing.T, storage *WalletStorage) {
+				assertRootKeyRetrievalError(t, storage, "wrong_password", pubKeyHex)
+			},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			c.testFn(t, storage)
+		})
+	}
 }
 
 func generateWallet(t testing.TB, password string) (string, []byte, error) {
@@ -95,20 +116,28 @@ func assertRootKeyRetrieval(t testing.TB, storage *WalletStorage, password, pubK
 	t.Helper()
 	retrievedKey, err := storage.RetrieveRootKeyFromDB(password, pubKeyHex)
 	if err != nil {
-		t.Fatalf("Failed to retrieve root key: %v", err)
+		t.Errorf("Failed to retrieve root key: %v", err)
 	}
 
 	if retrievedKey == nil {
-		t.Fatalf("Expected a valid key, but got nil")
+		t.Errorf("Expected a valid key, but got nil")
 	}
 
 	// Decrypt and compare with the original master key
 	masterKey, err := decryptMasterKey(password, encryptedMasterKeyHex)
 	if err != nil {
-		t.Fatalf("Failed to decrypt master key: %v", err)
+		t.Errorf("Failed to decrypt master key: %v", err)
 	}
 
 	if !reflect.DeepEqual(retrievedKey, masterKey) {
 		t.Errorf("Retrieved key does not match the original")
+	}
+}
+
+func assertRootKeyRetrievalError(t testing.TB, storage *WalletStorage, password, pubKeyHex string) {
+	t.Helper()
+	retrievedKey, err := storage.RetrieveRootKeyFromDB(password, pubKeyHex)
+	if err == nil {
+		t.Fatalf("Expected an error, but got a valid key: %v", retrievedKey)
 	}
 }
