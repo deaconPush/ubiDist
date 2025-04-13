@@ -20,7 +20,7 @@ type Wallet struct {
 
 type Account interface {
 	GetAddress() string
-	RetrieveBalance(network string) (string, error)
+	RetrieveBalance() (string, error)
 	GetTokenName() string
 }
 
@@ -129,14 +129,10 @@ func (w *Wallet) CreateETHAccount(password string) (*eth.ETHAccount, error) {
 	return ethAccount, nil
 }
 
-func (w *Wallet) GetTokenBalance(tokenName string, options ...string) (float64, error) {
-	var network string = ""
-	if len(options) > 0 {
-		network = options[0]
-	}
+func (w *Wallet) GetTokenBalance(tokenName string) (float64, error) {
 	for _, account := range w.Accounts {
 		if account.GetTokenName() == tokenName {
-			hexBalance, err := account.RetrieveBalance(network)
+			hexBalance, err := account.RetrieveBalance()
 			if err != nil {
 				return 0, fmt.Errorf("error retrieving balance: %v", err)
 			}
