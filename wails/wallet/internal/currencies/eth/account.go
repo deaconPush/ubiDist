@@ -17,6 +17,7 @@ const defaultNetwork = "hardhat"
 type ETHAccount struct {
 	tokenName string
 	publicKey *ecdsa.PublicKey
+	client    *ethClient
 }
 
 func NewETHAccount(masterKey *bip32.Key, tokenName string) (*ETHAccount, error) {
@@ -25,24 +26,22 @@ func NewETHAccount(masterKey *bip32.Key, tokenName string) (*ETHAccount, error) 
 		return nil, fmt.Errorf("failed to convert master key to ECDSA: %w", err)
 	}
 	publicKey := privateKey.Public().(*ecdsa.PublicKey)
+
+	client := NewEthClient(providers[defaultNetwork])
 	return &ETHAccount{
 		tokenName: tokenName,
 		publicKey: publicKey,
+		client:    client,
 	}, nil
 
 }
 
-func (account *ETHAccount) GetAddress() string {
-	return crypto.PubkeyToAddress(*account.publicKey).Hex()
+func (a *ETHAccount) GetAddress() string {
+	return crypto.PubkeyToAddress(*a.publicKey).Hex()
 }
 
-func (account *ETHAccount) RetrieveBalance(network string) (string, error) {
-	if network == "" {
-		network = defaultNetwork
-	}
-	provider := providers[network]
-
-	balance, err := GetBalance(provider, account.GetAddress())
+func (a *ETHAccount) RetrieveBalance() (string, error) {
+	balance, err := a.client.GetBalance(a.GetAddress())
 	if err != nil {
 		return "", fmt.Errorf("error retrieving balance: %v", err)
 	}
@@ -50,6 +49,10 @@ func (account *ETHAccount) RetrieveBalance(network string) (string, error) {
 	return balance, nil
 }
 
-func (account *ETHAccount) GetTokenName() string {
-	return account.tokenName
+func (a *ETHAccount) GetTokenName() string {
+	return a.tokenName
+}
+
+func (a *ETHAccount) ChangeProvider(provider string) {
+	a.client.SetProvider(provider)
 }
