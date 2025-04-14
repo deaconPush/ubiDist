@@ -38,9 +38,13 @@
         <button id="import-existing-button" on:click={importWallet}>Import an existing wallet</button>
       </div>
     {:else}
-      <h3>Wallet Login</h3>
-      <input type="password" id="unlock-wallet-password" placeholder="Enter your password" />
-      <button id="unlock-wallet-button" >Unlock wallet</button>
+    <form class="form-container">
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="wallet-password" />
+      </div>
+      <button id="unlock-wallet-button">Unlock Wallet</button>
+    </form>    
     {/if}
   </main>
   
@@ -94,6 +98,8 @@
       border-radius: 3vh;
       font-size: 1rem;
     }
+
+  
 
     @media (min-width: 950px)  {
       #logo {
@@ -149,6 +155,60 @@
         height: 6vh;
         font-size: 0.9rem;
       }
+
+    
+
+      .form-container {
+        margin-top: 8%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        align-content: center;
+        gap: 3vh;   
+        background-color: #A6B057;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .input-group label {
+        align-self: flex-start;
+        font-size: 0.9rem;
+        color: #2F2F2F; 
+      }
+
+      input[type="password"] {
+        border: none;
+        border-bottom: 0.3vh solid #3D4A27; 
+        outline: none;
+        width: 450px;
+        background-color: transparent;
+        color: #2F2F2F;
+        transition: border-color 0.3s ease;
+      }
+
+      input[type="password"]::placeholder {
+        color: #5C5C5C;
+      }
+
+      input[type="password"]:focus {
+        border-bottom-color: #fff;
+      }
+
+      #unlock-wallet-button {
+        background-color:  black;
+        color: #FDE024;
+        border: none;
+        font-family: "Nunito";
+        font-style: normal;
+        font-weight: bold;
+        width: 50%;
+        height: 4vh;
+        border-radius: 3vh;
+        font-size: 1rem;
+      }
     }
 
     @media (min-width: 300px) and (max-width: 600px) {
@@ -174,7 +234,6 @@
         width: 40%;
         height: 7vh;
       }
-    }
-  
+  }
   </style>
   
