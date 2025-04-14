@@ -85,6 +85,21 @@ func (a *App) RestoreWallet(password, mnemonic string) error {
 	return nil
 }
 
+func (a *App) RecoverWallet(password string) error {
+	wallet, err := hdwallet.RecoverWallet(password)
+	if err != nil {
+		return fmt.Errorf("error recovering wallet: %v", err)
+	}
+
+	a.wallet = wallet
+	err = wallet.Initialize(password)
+	if err != nil {
+		return fmt.Errorf("error initializing wallet: %v", err)
+	}
+
+	return nil
+}
+
 func (a *App) GetAssets(tokenSymbols []string) map[string]float64 {
 	var assets = make(map[string]float64)
 	for _, token := range tokenSymbols {

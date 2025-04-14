@@ -73,3 +73,21 @@ func (ws *WalletStorage) RetrieveRootKeyFromDB(password, pubKeyHex string) (*bip
 
 	return masterKey, nil
 }
+
+func (ws *WalletStorage) RetrieveKeysFromDB(password string) (string, string, error) {
+	var pubKeyHex string
+	var encryptedRootHex string
+	err := ws.db.QueryRowContext(context.Background(), "SELECT publicKey, masterKey FROM wallets").Scan(&pubKeyHex, &encryptedRootHex)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", "", fmt.Errorf("no rows returned")
+		}
+		return "", "", fmt.Errorf("error querying database: %v", err)
+	}
+
+	if err != nil {
+		return "", "", fmt.Errorf("error decoding public key: %v", err)
+	}
+
+	return pubKeyHex, encryptedRootHex, nil
+}
