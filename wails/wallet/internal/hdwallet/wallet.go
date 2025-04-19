@@ -1,14 +1,12 @@
 package hdwallet
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"strconv"
 	"wallet/internal/currencies/eth"
 	"wallet/internal/utils"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
@@ -38,7 +36,7 @@ func CreateWallet(password string, ws *WalletStorage) (*Wallet, string, error) {
 	}
 
 	storeMasterKey(ws, password, masterKey)
-	return &Wallet{publicKey: masterKey.PublicKey()}, mnemonic, nil
+	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws}, mnemonic, nil
 }
 
 func RestoreWallet(password string, mnemonic string, ws *WalletStorage) (*Wallet, error) {
@@ -56,15 +54,8 @@ func RestoreWallet(password string, mnemonic string, ws *WalletStorage) (*Wallet
 	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws}, nil
 }
 
-func RecoverWallet(password string) (*Wallet, error) {
-	ws, err := utils.NewDatabaseService(context.Background(), "wallet.db")
-	if err != nil {
-		return nil, fmt.Errorf("error initializing database service: %v", err)
-	}
-
-	walletDB := NewWalletStorage(ws.GetDB())
-
-	pubKeyHex, encryptedRootKey, err := walletDB.RetrieveKeysFromDB(password)
+func RecoverWallet(password string, ws *WalletStorage) (*Wallet, error) {
+	pubKeyHex, encryptedRootKey, err := ws.RetrieveKeysFromDB(password)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving keys from DB: %v", err)
 	}
@@ -86,7 +77,7 @@ func RecoverWallet(password string) (*Wallet, error) {
 
 	wallet := &Wallet{
 		publicKey: pubKey,
-		walletDB:  walletDB,
+		walletDB:  ws,
 	}
 
 	return wallet, nil
