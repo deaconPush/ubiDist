@@ -10,16 +10,14 @@ import (
 	"time"
 	"wallet/internal/currencies/eth"
 	"wallet/internal/hdwallet"
-	"wallet/internal/utils"
 )
 
 func createWallet(ctx context.Context, password string) (*hdwallet.Wallet, error) {
-	dbService, err := utils.NewDatabaseService(ctx, "wallet.db")
+	walletDB, err := hdwallet.NewWalletStorage(":memory:", ctx)
 	if err != nil {
-		panic(fmt.Errorf("error initializing database service: %v", err))
+		panic(fmt.Errorf("error initializing wallet storage: %v", err))
 	}
 
-	walletDB := hdwallet.NewWalletStorage(dbService.GetDB())
 	wallet, _, err := hdwallet.CreateWallet(password, walletDB)
 	if err != nil {
 		return nil, fmt.Errorf("error creating wallet: %v", err)
@@ -29,12 +27,11 @@ func createWallet(ctx context.Context, password string) (*hdwallet.Wallet, error
 }
 
 func RestoreWallet(ctx context.Context, password, mnemonic string) (*hdwallet.Wallet, error) {
-	dbService, err := utils.NewDatabaseService(ctx, "wallet.db")
+	walletDB, err := hdwallet.NewWalletStorage(":memory:", ctx)
 	if err != nil {
-		panic(fmt.Errorf("error initializing database service: %v", err))
+		panic(fmt.Errorf("error initializing wallet storage: %v", err))
 	}
 
-	walletDB := hdwallet.NewWalletStorage(dbService.GetDB())
 	wallet, err := hdwallet.RestoreWallet(password, mnemonic, walletDB)
 	if err != nil {
 		return nil, fmt.Errorf("error restoring wallet: %v", err)
