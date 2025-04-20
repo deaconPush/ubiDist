@@ -91,15 +91,15 @@ func (a *App) RecoverWallet(password string) error {
 	return nil
 }
 
-func (a *App) GetAssets(tokenSymbols []string) map[string]float64 {
+func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
 	var assets = make(map[string]float64)
 	for _, token := range tokenSymbols {
 		balance, err := a.wallet.GetTokenBalance(token)
 		if err != nil {
-			fmt.Println("error getting balance for token:", err)
+			return nil, fmt.Errorf("error getting balance for token %s: %v", token, err)
 		}
 
 		assets[token] = balance
 	}
-	return assets
+	return assets, nil
 }
