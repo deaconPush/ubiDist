@@ -91,20 +91,32 @@ func (ws *WalletStorage) RetrieveRootKeyFromDB(password, pubKeyHex string) (*bip
 	return masterKey, nil
 }
 
-func (ws *WalletStorage) RetrieveKeysFromDB(password string) (string, string, error) {
+func (ws *WalletStorage) RetrievePublicKeyFromDB() (*bip32.Key, error) {
 	var pubKeyHex string
-	var encryptedRootHex string
-	err := ws.db.QueryRowContext(ws.ctx, "SELECT publicKey, masterKey FROM wallets").Scan(&pubKeyHex, &encryptedRootHex)
+	err := ws.db.QueryRowContext(ws.ctx, "SELECT publicKey FROM wallets").Scan(&pubKeyHex)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", "", fmt.Errorf("no rows returned")
+			return nil, fmt.Errorf("no rows returned")
 		}
-		return "", "", fmt.Errorf("error querying database: %v", err)
+		return nil, fmt.Errorf("error querying database: %v", err)
 	}
 
+	pubKeyData, err := hex.DecodeString(pubKeyHex)
 	if err != nil {
-		return "", "", fmt.Errorf("error decoding public key: %v", err)
+		return nil, fmt.Errorf("error decoding public key data: %v", err)
 	}
 
-	return pubKeyHex, encryptedRootHex, nil
+	pubKey, err := bip32.Deserialize(pubKeyData)
+	if err != nil {
+		return nil, fmt.Errorf("error deserializing public key: %v", err)
+	}
+
+	return pubKey, nil
+}
+
+func (w *WalletStorage) Close() error {
+	if w.db != nil {
+		return w.db.Close()
+	}
+	return nil
 }

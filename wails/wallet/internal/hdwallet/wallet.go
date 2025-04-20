@@ -55,46 +55,16 @@ func RestoreWallet(password string, mnemonic string, ws *WalletStorage) (*Wallet
 }
 
 func RecoverWallet(password string, ws *WalletStorage) (*Wallet, error) {
-	pubKeyHex, encryptedRootKey, err := ws.RetrieveKeysFromDB(password)
+	pubKey, err := ws.RetrievePublicKeyFromDB()
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving keys from DB: %v", err)
-	}
-
-	pubKeyData, err := hex.DecodeString(pubKeyHex)
-	if err != nil {
-		return nil, fmt.Errorf("error decoding public key: %v", err)
-	}
-
-	_, err = utils.Decrypt([]byte(password), []byte(encryptedRootKey))
-	if err != nil {
-		return nil, fmt.Errorf("error decrypting master key %v", err)
-	}
-
-	pubKey, err := bip32.Deserialize(pubKeyData)
-	if err != nil {
-		return nil, fmt.Errorf("error deserializing public key: %v", err)
+		return nil, fmt.Errorf("error retrieving public key from DB: %v", err)
 	}
 
 	wallet := &Wallet{
 		publicKey: pubKey,
 		walletDB:  ws,
 	}
-
 	return wallet, nil
-}
-
-func (w *Wallet) retrieveMasterKey(password string) (*bip32.Key, error) {
-	pubKeyData, err := w.publicKey.Serialize()
-	if err != nil {
-		return nil, fmt.Errorf("error serializing master public key: %v", err)
-	}
-	pubKeyHex := hex.EncodeToString(pubKeyData)
-	masterKey, err := w.walletDB.RetrieveRootKeyFromDB(password, pubKeyHex)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving key from DB: %v", err)
-	}
-
-	return masterKey, nil
 }
 
 func storeMasterKey(ws *WalletStorage, password string, masterKey *bip32.Key) error {
