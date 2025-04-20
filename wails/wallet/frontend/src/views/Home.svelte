@@ -1,7 +1,6 @@
 <script lang="ts">
     import { GetAssets } from  '../../wailsjs/go/main/App'
 
-    
     const tokens: object = {
         'ETH': 'Ethereum'
     };
@@ -21,7 +20,6 @@
 
     function initAssets(): void {
         const tokenSymbols = Object.keys(tokens);
-        console.log("token Symbols: ", tokenSymbols);
         GetAssets(tokenSymbols)
         .then((assetsData) => {
             assets = Object.keys(assetsData).map((symbol) => (
@@ -34,7 +32,7 @@
             ))
         })
         .catch((error) => {
-            console.error(error);
+            alert("Error fetching assets: " + error);
         });
     }
 
@@ -191,6 +189,18 @@ main {
         .assets-container {
             margin-top: 3%;
             width: 38%;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .balance-container {
+            width: 90%;
+            padding: 3%;
+        }
+
+        .assets-container {
+            margin-top: 8%;
+            width: 88%;
         }
     }
   
