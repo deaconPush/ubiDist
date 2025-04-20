@@ -12,14 +12,12 @@ import (
 )
 
 func TestWalletStorageOperations(t *testing.T) {
-	dbService, err := utils.NewDatabaseService(context.Background(), ":memory:")
+	ws, err := NewWalletStorage(":memory:", context.Background())
 	if err != nil {
 		t.Fatalf("Failed to create database service: %v", err)
 	}
-	defer dbService.GetDB().Close()
 
-	storage := NewWalletStorage(dbService.GetDB())
-	assertWalletExistence(t, storage, context.Background(), false)
+	assertWalletExistence(t, ws, false)
 
 	password := "password"
 	pubKeyHex, encryptedMasterKeyHex, err := generateWallet(t, password)
@@ -27,7 +25,7 @@ func TestWalletStorageOperations(t *testing.T) {
 		t.Errorf("Failed to generate wallet: %v", err)
 	}
 
-	err = storage.SaveRootKeyToDB(password, pubKeyHex, encryptedMasterKeyHex)
+	err = ws.SaveRootKeyToDB(password, pubKeyHex, encryptedMasterKeyHex)
 	if err != nil {
 		t.Errorf("Failed to save root key to DB: %v", err)
 	}
@@ -51,9 +49,10 @@ func TestWalletStorageOperations(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			c.testFn(t, storage)
+			c.testFn(t, ws)
 		})
 	}
+	defer ws.Close()
 }
 
 func generateWallet(t testing.TB, password string) (string, []byte, error) {
@@ -87,9 +86,9 @@ func generateWallet(t testing.TB, password string) (string, []byte, error) {
 	return pubKeyHex, encryptedMasterKeyHex, nil
 }
 
-func assertWalletExistence(t testing.TB, storage *WalletStorage, ctx context.Context, want bool) {
+func assertWalletExistence(t testing.TB, storage *WalletStorage, want bool) {
 	t.Helper()
-	got, err := storage.WalletExists(ctx)
+	got, err := storage.WalletExists()
 	if err != nil {
 		t.Fatalf("Error checking wallet existence: %v", err)
 	}
