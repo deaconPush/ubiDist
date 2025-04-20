@@ -7,7 +7,6 @@ import (
 	"wallet/internal/currencies/eth"
 	"wallet/internal/utils"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
@@ -24,18 +23,48 @@ type Account interface {
 	GetTokenName() string
 }
 
-func (w *Wallet) retrieveMasterKey(password string) (*bip32.Key, error) {
-	pubKeyData, err := w.publicKey.Serialize()
+func CreateWallet(password string, ws *WalletStorage) (*Wallet, string, error) {
+	mnemonic, err := utils.GenerateMnemonic()
 	if err != nil {
-		return nil, fmt.Errorf("error serializing master public key: %v", err)
-	}
-	pubKeyHex := hex.EncodeToString(pubKeyData)
-	masterKey, err := w.walletDB.RetrieveRootKeyFromDB(password, pubKeyHex)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving key from DB: %v", err)
+		return nil, "", fmt.Errorf("error generating mnemonic: %v", err)
 	}
 
-	return masterKey, nil
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return nil, "", fmt.Errorf("error recovering master key from seed:: %v", err)
+	}
+
+	storeMasterKey(ws, password, masterKey)
+	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws}, mnemonic, nil
+}
+
+func RestoreWallet(password string, mnemonic string, ws *WalletStorage) (*Wallet, error) {
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return nil, fmt.Errorf("error recovering master key from seed: %v", err)
+	}
+
+	err = storeMasterKey(ws, password, masterKey)
+	if err != nil {
+		return nil, fmt.Errorf("error storing master key: %v", err)
+	}
+
+	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws}, nil
+}
+
+func RecoverWallet(password string, ws *WalletStorage) (*Wallet, error) {
+	pubKey, err := ws.RetrievePublicKeyFromDB()
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving public key from DB: %v", err)
+	}
+
+	wallet := &Wallet{
+		publicKey: pubKey,
+		walletDB:  ws,
+	}
+	return wallet, nil
 }
 
 func storeMasterKey(ws *WalletStorage, password string, masterKey *bip32.Key) error {
@@ -62,37 +91,6 @@ func storeMasterKey(ws *WalletStorage, password string, masterKey *bip32.Key) er
 	}
 
 	return nil
-}
-
-func CreateWallet(password string, ws *WalletStorage) (*Wallet, string, error) {
-	mnemonic, err := utils.GenerateMnemonic()
-	if err != nil {
-		return nil, "", fmt.Errorf("error generating mnemonic: %v", err)
-	}
-
-	seed := bip39.NewSeed(mnemonic, "")
-	masterKey, err := bip32.NewMasterKey(seed)
-	if err != nil {
-		return nil, "", fmt.Errorf("error recovering master key from seed:: %v", err)
-	}
-
-	storeMasterKey(ws, password, masterKey)
-	return &Wallet{publicKey: masterKey.PublicKey()}, mnemonic, nil
-}
-
-func RestoreWallet(password string, mnemonic string, ws *WalletStorage) (*Wallet, error) {
-	seed := bip39.NewSeed(mnemonic, "")
-	masterKey, err := bip32.NewMasterKey(seed)
-	if err != nil {
-		return nil, fmt.Errorf("error recovering master key from seed: %v", err)
-	}
-
-	err = storeMasterKey(ws, password, masterKey)
-	if err != nil {
-		return nil, fmt.Errorf("error storing master key: %v", err)
-	}
-
-	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws}, nil
 }
 
 func (w *Wallet) Initialize(password string) error {

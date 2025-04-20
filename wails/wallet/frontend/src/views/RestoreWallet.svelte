@@ -30,7 +30,7 @@
             currentView.set('Home');
         })
         .catch((error) => {
-            console.error(error);
+            alert('Error restoring wallet: ' + error);
         });
     }
 
