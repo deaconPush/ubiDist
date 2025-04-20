@@ -3,21 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 	"wallet/internal/hdwallet"
-	"wallet/internal/utils"
-
-	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/tyler-smith/go-bip39"
 )
 
 // App struct
 type App struct {
-	ctx       context.Context
-	wallet    *hdwallet.Wallet
-	dbService *utils.DatabaseService
-	walletDB  *hdwallet.WalletStorage
+	ctx      context.Context
+	wallet   *hdwallet.Wallet
+	walletDB *hdwallet.WalletStorage
 }
 
 // NewApp creates a new App application struct
@@ -29,21 +24,17 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	dbCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	dbService, err := utils.NewDatabaseService(dbCtx, "wallet.db")
+	walletDB, err := hdwallet.NewWalletStorage("wallet.db", ctx)
 	if err != nil {
-		panic(fmt.Errorf("error initializing database service: %v", err))
+		fmt.Println("error creating wallet storage:", err)
+		return
 	}
 
-	walletDB := hdwallet.NewWalletStorage(dbService.GetDB())
 	a.walletDB = walletDB
-	a.dbService = dbService
 }
 
 func (a *App) WalletExists() (bool, error) {
-	exists, err := a.walletDB.WalletExists(a.ctx)
+	exists, err := a.walletDB.WalletExists()
 	if err != nil {
 		return false, fmt.Errorf("error checking if wallet exists: %v", err)
 	}
@@ -85,15 +76,30 @@ func (a *App) RestoreWallet(password, mnemonic string) error {
 	return nil
 }
 
-func (a *App) GetAssets(tokenSymbols []string) map[string]float64 {
+func (a *App) RecoverWallet(password string) error {
+	wallet, err := hdwallet.RecoverWallet(password, a.walletDB)
+	if err != nil {
+		return fmt.Errorf("error recovering wallet: %v", err)
+	}
+
+	a.wallet = wallet
+	err = wallet.Initialize(password)
+	if err != nil {
+		return fmt.Errorf("error initializing wallet: %v", err)
+	}
+
+	return nil
+}
+
+func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
 	var assets = make(map[string]float64)
 	for _, token := range tokenSymbols {
 		balance, err := a.wallet.GetTokenBalance(token)
 		if err != nil {
-			fmt.Println("error getting balance for token:", err)
+			return nil, fmt.Errorf("error getting balance for token %s: %v", token, err)
 		}
 
 		assets[token] = balance
 	}
-	return assets
+	return assets, nil
 }
