@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"reflect"
 	"testing"
+	"time"
 	"wallet/internal/utils"
 
 	"github.com/tyler-smith/go-bip32"
@@ -12,12 +13,14 @@ import (
 )
 
 func TestWalletStorageOperations(t *testing.T) {
-	ws, err := NewWalletStorage(":memory:", context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ws, err := NewWalletStorage(":memory:", ctx)
 	if err != nil {
 		t.Fatalf("Failed to create database service: %v", err)
 	}
 
-	assertWalletExistence(t, ws, false)
+	defer cancel()
+	assertWalletExistence(t, ws, false, ctx)
 
 	password := "password"
 	pubKeyHex, encryptedMasterKeyHex, err := generateWallet(t, password)
@@ -25,7 +28,7 @@ func TestWalletStorageOperations(t *testing.T) {
 		t.Errorf("Failed to generate wallet: %v", err)
 	}
 
-	err = ws.SaveRootKeyToDB(password, pubKeyHex, encryptedMasterKeyHex)
+	err = ws.SaveRootKeyToDB(ctx, password, pubKeyHex, encryptedMasterKeyHex)
 	if err != nil {
 		t.Errorf("Failed to save root key to DB: %v", err)
 	}
@@ -37,13 +40,13 @@ func TestWalletStorageOperations(t *testing.T) {
 		{
 			name: "Valid password retrieves correct root key",
 			testFn: func(t *testing.T, storage *WalletStorage) {
-				assertRootKeyRetrieval(t, storage, password, pubKeyHex, encryptedMasterKeyHex)
+				assertRootKeyRetrieval(t, storage, password, pubKeyHex, encryptedMasterKeyHex, ctx)
 			},
 		},
 		{
 			name: "Invalid password fails to retrieve root key",
 			testFn: func(t *testing.T, storage *WalletStorage) {
-				assertRootKeyRetrievalError(t, storage, "wrong_password", pubKeyHex)
+				assertRootKeyRetrievalError(t, storage, "wrong_password", pubKeyHex, ctx)
 			},
 		},
 	}
@@ -86,9 +89,9 @@ func generateWallet(t testing.TB, password string) (string, []byte, error) {
 	return pubKeyHex, encryptedMasterKeyHex, nil
 }
 
-func assertWalletExistence(t testing.TB, storage *WalletStorage, want bool) {
+func assertWalletExistence(t testing.TB, storage *WalletStorage, want bool, ctx context.Context) {
 	t.Helper()
-	got, err := storage.WalletExists()
+	got, err := storage.WalletExists(ctx)
 	if err != nil {
 		t.Fatalf("Error checking wallet existence: %v", err)
 	}
@@ -111,9 +114,9 @@ func decryptMasterKey(password string, encryptedMasterKeyHex []byte) (*bip32.Key
 	return bip32.Deserialize(masterKeyData)
 }
 
-func assertRootKeyRetrieval(t testing.TB, storage *WalletStorage, password, pubKeyHex string, encryptedMasterKeyHex []byte) {
+func assertRootKeyRetrieval(t testing.TB, storage *WalletStorage, password, pubKeyHex string, encryptedMasterKeyHex []byte, ctx context.Context) {
 	t.Helper()
-	retrievedKey, err := storage.RetrieveRootKeyFromDB(password, pubKeyHex)
+	retrievedKey, err := storage.RetrieveRootKeyFromDB(ctx, password, pubKeyHex)
 	if err != nil {
 		t.Errorf("Failed to retrieve root key: %v", err)
 	}
@@ -133,9 +136,9 @@ func assertRootKeyRetrieval(t testing.TB, storage *WalletStorage, password, pubK
 	}
 }
 
-func assertRootKeyRetrievalError(t testing.TB, storage *WalletStorage, password, pubKeyHex string) {
+func assertRootKeyRetrievalError(t testing.TB, storage *WalletStorage, password, pubKeyHex string, ctx context.Context) {
 	t.Helper()
-	retrievedKey, err := storage.RetrieveRootKeyFromDB(password, pubKeyHex)
+	retrievedKey, err := storage.RetrieveRootKeyFromDB(ctx, password, pubKeyHex)
 	if err == nil {
 		t.Fatalf("Expected an error, but got a valid key: %v", retrievedKey)
 	}
