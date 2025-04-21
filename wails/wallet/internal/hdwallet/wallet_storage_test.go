@@ -13,13 +13,12 @@ import (
 )
 
 func TestWalletStorageOperations(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx := context.Background()
 	ws, err := NewWalletStorage(":memory:", ctx)
 	if err != nil {
 		t.Fatalf("Failed to create database service: %v", err)
 	}
 
-	defer cancel()
 	assertWalletExistence(t, ws, false, ctx)
 
 	password := "password"
@@ -91,7 +90,9 @@ func generateWallet(t testing.TB, password string) (string, []byte, error) {
 
 func assertWalletExistence(t testing.TB, storage *WalletStorage, want bool, ctx context.Context) {
 	t.Helper()
-	got, err := storage.WalletExists(ctx)
+	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	got, err := storage.WalletExists(dbCtx)
 	if err != nil {
 		t.Fatalf("Error checking wallet existence: %v", err)
 	}
@@ -116,7 +117,9 @@ func decryptMasterKey(password string, encryptedMasterKeyHex []byte) (*bip32.Key
 
 func assertRootKeyRetrieval(t testing.TB, storage *WalletStorage, password, pubKeyHex string, encryptedMasterKeyHex []byte, ctx context.Context) {
 	t.Helper()
-	retrievedKey, err := storage.RetrieveRootKeyFromDB(ctx, password, pubKeyHex)
+	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	retrievedKey, err := storage.RetrieveRootKeyFromDB(dbCtx, password, pubKeyHex)
 	if err != nil {
 		t.Errorf("Failed to retrieve root key: %v", err)
 	}
@@ -138,7 +141,9 @@ func assertRootKeyRetrieval(t testing.TB, storage *WalletStorage, password, pubK
 
 func assertRootKeyRetrievalError(t testing.TB, storage *WalletStorage, password, pubKeyHex string, ctx context.Context) {
 	t.Helper()
-	retrievedKey, err := storage.RetrieveRootKeyFromDB(ctx, password, pubKeyHex)
+	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	retrievedKey, err := storage.RetrieveRootKeyFromDB(dbCtx, password, pubKeyHex)
 	if err == nil {
 		t.Fatalf("Expected an error, but got a valid key: %v", retrievedKey)
 	}
