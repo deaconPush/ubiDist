@@ -12,8 +12,7 @@ import (
 )
 
 type WalletStorage struct {
-	db  *sql.DB
-	ctx context.Context
+	db *sql.DB
 }
 
 func NewWalletStorage(filePath string, ctx context.Context) (*WalletStorage, error) {
@@ -32,12 +31,12 @@ func NewWalletStorage(filePath string, ctx context.Context) (*WalletStorage, err
 		return nil, fmt.Errorf("error creating wallets table: %v", err)
 	}
 
-	return &WalletStorage{db: db, ctx: ctx}, nil
+	return &WalletStorage{db: db}, nil
 }
 
-func (ws *WalletStorage) WalletExists() (bool, error) {
+func (ws *WalletStorage) WalletExists(ctx context.Context) (bool, error) {
 	var count int
-	err := ws.db.QueryRowContext(ws.ctx, "SELECT COUNT(*) FROM wallets").Scan(&count)
+	err := ws.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM wallets").Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -45,8 +44,8 @@ func (ws *WalletStorage) WalletExists() (bool, error) {
 	return count > 0, nil
 }
 
-func (ws *WalletStorage) SaveRootKeyToDB(password, pubKeyHex string, encryptedMasterKey []byte) error {
-	result, err := ws.db.ExecContext(ws.ctx, "INSERT INTO wallets (publicKey, masterKey) VALUES (?, ?)", pubKeyHex, encryptedMasterKey)
+func (ws *WalletStorage) SaveRootKeyToDB(ctx context.Context, password, pubKeyHex string, encryptedMasterKey []byte) error {
+	result, err := ws.db.ExecContext(ctx, "INSERT INTO wallets (publicKey, masterKey) VALUES (?, ?)", pubKeyHex, encryptedMasterKey)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}
@@ -63,9 +62,9 @@ func (ws *WalletStorage) SaveRootKeyToDB(password, pubKeyHex string, encryptedMa
 	return nil
 }
 
-func (ws *WalletStorage) RetrieveRootKeyFromDB(password, pubKeyHex string) (*bip32.Key, error) {
+func (ws *WalletStorage) RetrieveRootKeyFromDB(ctx context.Context, password, pubKeyHex string) (*bip32.Key, error) {
 	var encryptedKeyData string
-	err := ws.db.QueryRowContext(ws.ctx, "SELECT masterKey FROM wallets WHERE publicKey=?", pubKeyHex).Scan(&encryptedKeyData)
+	err := ws.db.QueryRowContext(ctx, "SELECT masterKey FROM wallets WHERE publicKey=?", pubKeyHex).Scan(&encryptedKeyData)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("no rows returned")
@@ -91,9 +90,9 @@ func (ws *WalletStorage) RetrieveRootKeyFromDB(password, pubKeyHex string) (*bip
 	return masterKey, nil
 }
 
-func (ws *WalletStorage) RetrievePublicKeyFromDB() (*bip32.Key, error) {
+func (ws *WalletStorage) RetrievePublicKeyFromDB(ctx context.Context) (*bip32.Key, error) {
 	var pubKeyHex string
-	err := ws.db.QueryRowContext(ws.ctx, "SELECT publicKey FROM wallets").Scan(&pubKeyHex)
+	err := ws.db.QueryRowContext(ctx, "SELECT publicKey FROM wallets").Scan(&pubKeyHex)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("no rows returned")
