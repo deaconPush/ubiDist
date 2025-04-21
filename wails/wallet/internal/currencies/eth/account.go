@@ -1,8 +1,10 @@
 package eth
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tyler-smith/go-bip32"
@@ -18,9 +20,10 @@ type ETHAccount struct {
 	tokenName string
 	publicKey *ecdsa.PublicKey
 	client    *ethClient
+	ctx       context.Context
 }
 
-func NewETHAccount(masterKey *bip32.Key, tokenName string) (*ETHAccount, error) {
+func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string) (*ETHAccount, error) {
 	privateKey, err := crypto.ToECDSA(masterKey.Key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert master key to ECDSA: %w", err)
@@ -32,6 +35,7 @@ func NewETHAccount(masterKey *bip32.Key, tokenName string) (*ETHAccount, error) 
 		tokenName: tokenName,
 		publicKey: publicKey,
 		client:    client,
+		ctx:       ctx,
 	}, nil
 
 }
@@ -41,7 +45,9 @@ func (a *ETHAccount) GetAddress() string {
 }
 
 func (a *ETHAccount) RetrieveBalance() (string, error) {
-	balance, err := a.client.GetBalance(a.GetAddress())
+	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
+	defer cancel()
+	balance, err := a.client.GetBalance(cliCtx, a.GetAddress())
 	if err != nil {
 		return "", fmt.Errorf("error retrieving balance: %v", err)
 	}
