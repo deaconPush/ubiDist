@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 	"wallet/internal/hdwallet"
 
 	"github.com/tyler-smith/go-bip39"
@@ -24,7 +25,10 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	walletDB, err := hdwallet.NewWalletStorage("wallet.db", ctx)
+	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	walletDB, err := hdwallet.NewWalletStorage("wallet.db", dbCtx)
+	defer cancel()
+
 	if err != nil {
 		fmt.Println("error creating wallet storage:", err)
 		return
@@ -34,7 +38,9 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) WalletExists() (bool, error) {
-	exists, err := a.walletDB.WalletExists()
+	dbCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
+	exists, err := a.walletDB.WalletExists(dbCtx)
+	defer cancel()
 	if err != nil {
 		return false, fmt.Errorf("error checking if wallet exists: %v", err)
 	}
@@ -47,7 +53,7 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 }
 
 func (a *App) CreateWallet(password string) (string, error) {
-	wallet, mnemonic, err := hdwallet.CreateWallet(password, a.walletDB)
+	wallet, mnemonic, err := hdwallet.CreateWallet(a.ctx, password, a.walletDB)
 	if err != nil {
 		return "", fmt.Errorf("error creating wallet: %v", err)
 	}
@@ -62,7 +68,7 @@ func (a *App) CreateWallet(password string) (string, error) {
 }
 
 func (a *App) RestoreWallet(password, mnemonic string) error {
-	wallet, err := hdwallet.RestoreWallet(password, mnemonic, a.walletDB)
+	wallet, err := hdwallet.RestoreWallet(a.ctx, password, mnemonic, a.walletDB)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}
@@ -77,7 +83,7 @@ func (a *App) RestoreWallet(password, mnemonic string) error {
 }
 
 func (a *App) RecoverWallet(password string) error {
-	wallet, err := hdwallet.RecoverWallet(password, a.walletDB)
+	wallet, err := hdwallet.RecoverWallet(a.ctx, password, a.walletDB)
 	if err != nil {
 		return fmt.Errorf("error recovering wallet: %v", err)
 	}

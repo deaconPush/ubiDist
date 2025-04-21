@@ -18,7 +18,7 @@ func createWallet(ctx context.Context, password string) (*hdwallet.Wallet, error
 		panic(fmt.Errorf("error initializing wallet storage: %v", err))
 	}
 
-	wallet, _, err := hdwallet.CreateWallet(password, walletDB)
+	wallet, _, err := hdwallet.CreateWallet(ctx, password, walletDB)
 	if err != nil {
 		return nil, fmt.Errorf("error creating wallet: %v", err)
 	}
@@ -32,7 +32,7 @@ func RestoreWallet(ctx context.Context, password, mnemonic string) (*hdwallet.Wa
 		panic(fmt.Errorf("error initializing wallet storage: %v", err))
 	}
 
-	wallet, err := hdwallet.RestoreWallet(password, mnemonic, walletDB)
+	wallet, err := hdwallet.RestoreWallet(ctx, password, mnemonic, walletDB)
 	if err != nil {
 		return nil, fmt.Errorf("error restoring wallet: %v", err)
 	}
@@ -54,7 +54,7 @@ func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	var wallet *hdwallet.Wallet = nil
-	dbCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	cliCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	client := eth.NewEthClient("http://localhost:8545")
 	defer cancel()
 
@@ -69,7 +69,7 @@ func main() {
 			scanner.Scan()
 			password := strings.TrimSpace(scanner.Text())
 			var err error
-			wallet, err = createWallet(dbCtx, password)
+			wallet, err = createWallet(context.Background(), password)
 			if err != nil {
 				fmt.Println("Error creating wallet:", err)
 				break
@@ -92,7 +92,7 @@ func main() {
 			mnemonic := strings.TrimSpace(scanner.Text())
 			fmt.Println("mnemonic: ", mnemonic)
 			var err error
-			wallet, err = RestoreWallet(dbCtx, password, mnemonic)
+			wallet, err = RestoreWallet(context.Background(), password, mnemonic)
 			if err != nil {
 				fmt.Println("Error restoring wallet:", err)
 				break
@@ -112,7 +112,7 @@ func main() {
 				break
 			}
 
-			if !client.NetListening() {
+			if !client.NetListening(cliCtx) {
 				fmt.Println("Node is not listening")
 				break
 			}
