@@ -19,6 +19,6 @@
   {:else if view === "Home"}
     <Home />
   {:else if view === "Send"}
-  |<Send />
+    <Send />
   {/if}
 </main>
