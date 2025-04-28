@@ -1,18 +1,13 @@
 <script lang="ts">
     import { GetAssets } from  '../../wailsjs/go/main/App'
+    import { currentView, assets } from '../stores';
+    import type { Asset } from '../types/index';
 
     const tokens: object = {
         'ETH': 'Ethereum'
     };
     let balance: number = 0;
-    
-    type Asset = {
-        balance: number;
-        symbol: string;
-        name: string;
-        logoPath: string;
-    };
-    let assets: Asset[] = [];
+    let assetsArray: Asset[] = [];
 
     function getLogoPath(symbol: string): string {
         return `src/assets/logos/${symbol}.png`;
@@ -22,7 +17,7 @@
         const tokenSymbols = Object.keys(tokens);
         GetAssets(tokenSymbols)
         .then((assetsData) => {
-            assets = Object.keys(assetsData).map((symbol) => (
+            assetsArray = Object.keys(assetsData).map((symbol) => (
                 {
                     balance: assetsData[symbol],
                     symbol: symbol,
@@ -30,41 +25,49 @@
                     logoPath: getLogoPath(symbol)
                 }
             ))
+            assets.set(assetsArray);
         })
         .catch((error) => {
             alert("Error fetching assets: " + error);
         });
     }
 
+    function sendCrypto(): void {
+        currentView.set('Send');
+    }
+
     initAssets();
 </script>
 
 <main>
-    <div class="balance-container">
-        <h4>Total Balance</h4>
-        <h2>$ {balance}</h2>
-        <div class="balance-buttons-container">
-            <button id="send-crypto-button">Send</button>
-            <button id="receive-crypto-button">Receive</button>
+        <div class="balance-container">
+            <h4>Total Balance</h4>
+            <h2>$ {balance}</h2>
+            <div class="balance-buttons-container">
+                <button 
+                id="send-crypto-button"
+                on:click={sendCrypto}
+                >Send</button>
+                <button id="receive-crypto-button">Receive</button>
+            </div>
         </div>
-    </div>
-    <div class="assets-container">
-        <h4 id="assets-title">Assets</h4>
-        <div class="assets-list">
-            <div class="asset">
-                {#each assets as asset}
-                    <img src={asset.logoPath} alt={asset.symbol} />
-                    <div class="coin-description-container">
-                        <h6 class="coin-description-symbol">{asset.symbol}</h6>
-                        <h5 class="coin-description-name">{asset.name}</h5>
-                    </div>
-                    <h3 class="coin-balance">{asset.balance}</h3>
-                {/each}
-         </div>
-    </div>
-</main>
-
-
+        <div class="assets-container">
+            <h4 id="assets-title">Assets</h4>
+            <div class="assets-list">
+                <div class="asset">
+                    {#each assetsArray as asset}
+                        <img src={asset.logoPath} alt={asset.symbol} />
+                        <div class="coin-description-container">
+                            <h6 class="coin-description-symbol">{asset.symbol}</h6>
+                            <h5 class="coin-description-name">{asset.name}</h5>
+                        </div>
+                        <h3 class="coin-balance">{asset.balance}</h3>
+                    {/each}
+                </div>
+            </div>
+        </div>
+    </main>
+    
 <style>
 
 main {
