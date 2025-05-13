@@ -71,9 +71,7 @@ func TestEncryption(t *testing.T) {
 			t.Errorf("Decryption failed: %v", err)
 		}
 
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("Decrypted data does not match original data")
-		}
+		assertCorrectValue(t, got, want)
 	})
 }
 
@@ -124,10 +122,56 @@ func TestChildKeyGeneration(t *testing.T) {
 				t.Errorf("Error converting key to ECDSA: %v", err)
 			}
 
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("Derived key does not match expected key")
-			}
-
+			assertCorrectValue(t, got, want)
 		})
+	}
+}
+
+func TestAddressValidation(t *testing.T) {
+	cases := []struct {
+		address string
+		name    string
+		token   string
+		isValid bool
+	}{
+		{
+			address: "0xde709f2102306220921060314715629080e2fb77",
+			name:    "All lowercase ETH address",
+			token:   "ETH",
+			isValid: true,
+		},
+		{
+			address: "0XDE709F2102306220921060314715629080E2FB77",
+			name:    "All uppercase ETH address",
+			token:   "ETH",
+			isValid: true,
+		},
+		{
+			address: "0x52908400098527886e0F7030069857D2E4169EE7",
+			name:    "Invalid checksum",
+			token:   "ETH",
+			isValid: false,
+		},
+		{
+			address: "0x27b1FDB04752BBC536007A920D24ACB045561c26",
+			name:    "Valid checksum",
+			token:   "ETH",
+			isValid: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			bool := ValidateAddress(tc.address, tc.token)
+			assertCorrectValue(t, bool, tc.isValid)
+		})
+	}
+
+}
+
+func assertCorrectValue[T any](t testing.TB, got, want T) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("expected %v, got %v", want, got)
 	}
 }

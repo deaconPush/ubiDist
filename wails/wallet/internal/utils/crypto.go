@@ -5,13 +5,17 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/scrypt"
+	"golang.org/x/crypto/sha3"
 )
 
 func GenerateMnemonic() (string, error) {
@@ -138,4 +142,61 @@ func parseDerivationPath(path string) ([]uint32, error) {
 		indices = append(indices, index)
 	}
 	return indices, nil
+}
+
+func ValidateAddress(address, token string) bool {
+	if token == "ETH" {
+		return ValidateETHAddress(address)
+
+	}
+	return false
+}
+
+func ValidateETHAddress(address string) bool {
+	ok := ValidateETHAddressFormat(address)
+	if !ok {
+		return false
+	}
+
+	cleanAddress := address[2:]
+	if cleanAddress == strings.ToLower(cleanAddress) || cleanAddress == strings.ToUpper(cleanAddress) {
+		return true
+	}
+	ok = ValidateETHChecksum(cleanAddress)
+
+	return ok
+}
+
+func ValidateETHAddressFormat(address string) bool {
+	ethAddressRegex := regexp.MustCompile(`^0[xX][0-9a-fA-F]{40}$`)
+	return ethAddressRegex.MatchString(address)
+
+}
+
+func ValidateETHChecksum(address string) bool {
+	hasher := sha3.NewLegacyKeccak256()
+	hasher.Write([]byte(strings.ToLower(address)))
+	digest := hasher.Sum(nil)
+	digestHex := hex.EncodeToString(digest)
+	var checksumAddress strings.Builder
+
+	for i, c := range address {
+		if c >= '0' && c <= '9' {
+			checksumAddress.WriteRune(c)
+			continue
+		}
+
+		hashBit, err := strconv.ParseUint(string(digestHex[i]), 16, 4)
+
+		if err != nil {
+			return false
+		}
+
+		if hashBit > 7 {
+			checksumAddress.WriteRune(unicode.ToUpper(c))
+		} else {
+			checksumAddress.WriteRune(c)
+		}
+	}
+	return address == checksumAddress.String()
 }
