@@ -57,7 +57,7 @@
     if (isPasswordStrong && password === confirmPassword) {
         passwordMatchContainer.textContent = '';
         passwordMatchContainer.style.display = 'none';
-      createPasswordButton.disabled = false;
+        createPasswordButton.disabled = false;
     }
 
     if (confirmPassword.length === 0) {
