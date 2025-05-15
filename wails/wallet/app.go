@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"wallet/internal/hdwallet"
+	"wallet/internal/utils"
 
 	"github.com/tyler-smith/go-bip39"
 )
@@ -108,4 +109,7 @@ func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
 		assets[token] = balance
 	}
 	return assets, nil
+}
+func (a *App) ValidateAddress(address, token string) bool {
+	return utils.ValidateAddress(address, token)
 }
