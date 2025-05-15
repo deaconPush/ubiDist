@@ -1,6 +1,7 @@
 <script lang="ts">
     import { assets } from '../stores';
     import type { Asset } from '../types/index';
+    import { ValidateAddress } from '../../wailsjs/go/main/App'    
 
     $: userAssets = $assets;
     let showAddressInput: boolean = false;
@@ -12,14 +13,53 @@
         sendTokenTitle = `Send ${symbol}`;
         showAddressInput = true;
     }
+
+    function validateAddress(): void {
+        const inputComponent = document.getElementById("address-input") as HTMLInputElement;
+        const addressValidationLabel = document.getElementById("address-validation-label") as HTMLParagraphElement;
+        const addressInputButton = document.getElementById("address-input-button") as HTMLButtonElement;
+        if (!inputComponent || !addressValidationLabel || !addressInputButton) {
+            console.error("Error retrieving html components");
+        }
+
+        const address: string = inputComponent.value;
+        const token: string = sendTokenTitle.split(" ")[1]
+
+        if(address.length !== 0){
+            ValidateAddress(address, token).
+            then((ok: boolean) => {
+                if(!ok){
+                    addressValidationLabel.style.display = "block";
+                    addressValidationLabel.textContent = "Address is invalid!"
+                    addressInputButton.disabled = true;
+                }
+                else {
+                    addressValidationLabel.textContent = ""
+                    addressValidationLabel.style.display = "none";
+                    addressInputButton.disabled = false;
+
+                }
+            })
+            return;
+        }
+
+        addressValidationLabel.textContent = ""
+        addressValidationLabel.style.display = "none";
+    }
+
+
 </script>
 
 
 <main>
     {#if showAddressInput}
         <h3 id="send-token-title">{sendTokenTitle}</h3>
-        <input class="address-input" type="text" placeholder="Enter address" />
-        <button class="address-input-button" disabled on:click={() => alert('Address submitted')}>Continue</button>
+        <div class="input-group">
+            <input id="address-input" type="text" on:input={validateAddress} placeholder="Enter address" />
+            <p id="address-validation-label"></p>
+        </div>
+        
+        <button id="address-input-button" disabled on:click={() => alert('Address submitted')}>Continue</button>
     {:else}
     <div class="assets-container">
         <h3>Available assets</h3>
@@ -44,15 +84,15 @@
 
 <style>
     main {
-            font-family: "Nunito", sans-serif;
-            color: black;
-            background-color: #f9f9f9; 
-            height: 100vh;
-            padding: 5%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        font-family: "Nunito", sans-serif;
+        color: black;
+        background-color: #f9f9f9; 
+        height: 100vh;
+        padding: 5%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
     .assets-container {
         margin-top: 3vh;
@@ -109,32 +149,43 @@
         margin-right: 3%;
     }
     
-    .address-input {
-        width: 75%;
-        padding: 3%;
-        border-radius: 3vh;
-        border: 1px solid #ccc;
-        margin-top: 20px;
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2vh;
+        align-items: center;
     }
 
-    .address-input-button {
-        margin-top: 20%;
-        width: 80%;
-        font-size: 1.3rem;
-        border-radius: 3vh;
-        height: 8vh;
+    #address-input {
+        padding: 3%;
+        border-radius: 4vh;
+        border: 5px solid #ccc;
+    }
+
+
+    #address-validation-label {
+        font-size: 0.9rem;
+        color: red;
+        display: none;
+    }
+
+    #address-input-button {
+        margin-top: 15%;
+        width: 40%;
+        border-radius: 2vh;
         background-color: #007bff;
         color: white;
         cursor: pointer;
     }
 
-    .address-input-button:disabled {
+    #address-input-button:disabled {
         background-color: #ccc;
         color: #666;
         border: none;   
-
         cursor: not-allowed;
     }
+
+    
 
     @media (min-width: 1800px) {
 
@@ -151,6 +202,21 @@
             margin-top: 3%;
             width: 88%;
         }
+
+        #address-input {
+            margin-top: 8%;
+            width: 300px;
+            height: 3vh;
+
+        }
+
+        #address-input-button {
+            font-size: 1.1rem;
+            width: 200px;
+            height: 5vh;
+
+        }
+
     }
   
     

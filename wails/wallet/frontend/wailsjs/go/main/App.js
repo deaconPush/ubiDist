@@ -18,6 +18,10 @@ export function RestoreWallet(arg1, arg2) {
   return window['go']['main']['App']['RestoreWallet'](arg1, arg2);
 }
 
+export function ValidateAddress(arg1, arg2) {
+  return window['go']['main']['App']['ValidateAddress'](arg1, arg2);
+}
+
 export function ValidateMnemonic(arg1) {
   return window['go']['main']['App']['ValidateMnemonic'](arg1);
 }
