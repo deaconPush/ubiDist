@@ -4,14 +4,14 @@
     import { ValidateAddress } from '../../wailsjs/go/main/App'    
 
     $: userAssets = $assets;
-    let showAddressInput: boolean = false;
+    let currentComponent: string = "Available Assets"
     let sendTokenTitle: string;
 
 
     function clickCard(asset: Asset): void {
         let symbol: string = asset.symbol;
         sendTokenTitle = `Send ${symbol}`;
-        showAddressInput = true;
+        currentComponent = "Validate Address"
     }
 
     function validateAddress(): void {
@@ -52,7 +52,7 @@
 
 
 <main>
-    {#if showAddressInput}
+    {#if currentComponent === "Validate Address"}
         <h3 id="send-token-title">{sendTokenTitle}</h3>
         <div class="input-group">
             <input id="address-input" type="text" on:input={validateAddress} placeholder="Enter address" />
@@ -60,7 +60,7 @@
         </div>
         
         <button id="address-input-button" disabled on:click={() => alert('Address submitted')}>Continue</button>
-    {:else}
+    {:else if currentComponent === "Available Assets" }
     <div class="assets-container">
         <h3>Available assets</h3>
         <div class="assets-list">

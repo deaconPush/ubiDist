@@ -18,11 +18,11 @@
     checkWallet();
 
     function createWallet(): void {
-      currentView.set("CreateWallet");
+      currentView.set("Create Wallet");
     }
   
     function importWallet(): void {
-      currentView.set("RestoreWallet");
+      currentView.set("Restore Wallet");
     }
 
     function checkInput(): void {

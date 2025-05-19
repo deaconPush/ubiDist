@@ -12,9 +12,9 @@
 <main>
   {#if view === "Wallet Recovery"}
     <WalletRecovery />
-  {:else if view === "RestoreWallet"}
+  {:else if view === "Restore Wallet"}
     <RestoreWallet />
-  {:else if view === "CreateWallet"}
+  {:else if view === "Create Wallet"}
     <CreateWallet />
   {:else if view === "Home"}
     <Home />
