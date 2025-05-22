@@ -113,3 +113,12 @@ func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
 func (a *App) ValidateAddress(address, token string) bool {
 	return utils.ValidateAddress(address, token)
 }
+
+func (a *App) EstimateGas(token, to, value string) (string, error) {
+	gasPrice, err := a.wallet.EstimateTokenGas(token, to, value)
+	if err != nil {
+		return "", fmt.Errorf("rrror estimating gas price %v", err)
+	}
+
+	return gasPrice, nil
+}

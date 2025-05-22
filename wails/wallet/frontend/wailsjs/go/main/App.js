@@ -6,6 +6,10 @@ export function CreateWallet(arg1) {
   return window['go']['main']['App']['CreateWallet'](arg1);
 }
 
+export function EstimateGas(arg1, arg2, arg3) {
+  return window['go']['main']['App']['EstimateGas'](arg1, arg2, arg3);
+}
+
 export function GetAssets(arg1) {
   return window['go']['main']['App']['GetAssets'](arg1);
 }

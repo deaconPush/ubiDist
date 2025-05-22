@@ -1,14 +1,21 @@
 <script lang="ts">
     import { assets } from '../stores';
     import type { Asset } from '../types/index';
-    import { ValidateAddress } from '../../wailsjs/go/main/App'    
+    import { ValidateAddress,EstimateGas } from '../../wailsjs/go/main/App'    
+    
 
     $: userAssets = $assets;
+    let currentAsset: Asset; 
     let currentComponent: string = "Available Assets"
     let sendTokenTitle: string;
+    let sendingAddress: string;
+    let confirmedTransactionAmount: number;
+    let gasPrice: string;
+    
 
 
     function clickCard(asset: Asset): void {
+        currentAsset = asset;
         let symbol: string = asset.symbol;
         sendTokenTitle = `Send ${symbol}`;
         currentComponent = "Validate Address"
@@ -37,6 +44,7 @@
                     addressValidationLabel.textContent = ""
                     addressValidationLabel.style.display = "none";
                     addressInputButton.disabled = false;
+                    sendingAddress = address;
 
                 }
             })
@@ -47,7 +55,78 @@
         addressValidationLabel.style.display = "none";
     }
 
+    function confirmAddress(): void {
+        currentComponent = "Set Token Amount"
+    }
 
+    function validateAmount(e: Event): void {
+        const target = e.target as HTMLInputElement;
+        const amountValidationLabel = document.getElementById("amount-validation-label") as HTMLParagraphElement;
+        const continueTransactionButton =  document.getElementById("continue-transaction-button") as HTMLButtonElement;
+        if(!target || !amountValidationLabel || !continueTransactionButton) {
+            alert("HTML elements are not valid");
+            return;
+        }
+
+        const maximumAmount: number = currentAsset.balance;
+        const value: string = target.value;
+        
+        if (value === "") {
+            target.value = "0";
+            return;
+        }
+
+        if (!/^\d*\.?\d*$/.test(value)) {
+            target.value = value.slice(0, -1);
+            return;
+        }
+
+         if (/^0\d+/.test(value)) {
+            target.value = value.replace(/^0+/, '');
+            return;
+        }
+
+        const amount: number = parseFloat(value) as number;
+
+        if (amount > maximumAmount) {
+            amountValidationLabel.textContent = "You are not allowed to exceed your balance"
+            amountValidationLabel.style.display = "block";
+            continueTransactionButton.disabled = true;
+            return;
+        }
+
+        if (amount > 0 && amount < maximumAmount){
+            amountValidationLabel.textContent = ""
+            amountValidationLabel.style.display = "none";
+            continueTransactionButton.disabled = false;
+            return;
+        }
+
+        amountValidationLabel.textContent = ""
+            amountValidationLabel.style.display = "none";
+            continueTransactionButton.disabled = true;
+        }
+
+        function confirmAmount(): void {
+            const continueTransactionButton =  document.getElementById("continue-transaction-button") as HTMLButtonElement;
+            const transactionAmountInput = document.getElementById("amount-input") as HTMLInputElement;
+            if(!continueTransactionButton || !transactionAmountInput) {
+                alert("HTML elements are not valid");
+                return;
+            }
+
+            const transactionAmount: string = transactionAmountInput.value;
+            confirmedTransactionAmount = parseFloat(transactionAmount);
+            EstimateGas(currentAsset.symbol, sendingAddress, transactionAmount)
+            .then((gas: string) => {
+                gasPrice = gas;
+                currentComponent = "Confirm Transaction";            
+            })
+            .catch((error) => alert("Error estimating gas price: " + error))
+            
+        }
+
+    
 </script>
 
 
@@ -59,26 +138,42 @@
             <p id="address-validation-label"></p>
         </div>
         
-        <button id="address-input-button" disabled on:click={() => alert('Address submitted')}>Continue</button>
+        <button id="address-input-button" disabled on:click={confirmAddress}>Continue</button>
     {:else if currentComponent === "Available Assets" }
-    <div class="assets-container">
-        <h3>Available assets</h3>
-        <div class="assets-list">
-                {#each userAssets as asset}
-                    {#if asset.balance > 0}
-                        <div class="asset" on:click={() => clickCard(asset)}>
-                            <img src={asset.logoPath} alt={asset.symbol} />
-            
-                        <div class="coin-description-container">
-                            <h6 class="coin-description-symbol">{asset.symbol}</h6>
-                            <h5 class="coin-description-name">{asset.name}</h5>
-                        </div>
-                    <h3 class="coin-balance">{asset.balance}</h3>
+        <div class="assets-container">
+            <h3>Available assets</h3>
+            <div class="assets-list">
+                    {#each userAssets as asset}
+                        {#if asset.balance > 0}
+                            <div class="asset" on:click={() => clickCard(asset)}>
+                                <img src={asset.logoPath} alt={asset.symbol} />
+                
+                            <div class="coin-description-container">
+                                <h6 class="coin-description-symbol">{asset.symbol}</h6>
+                                <h5 class="coin-description-name">{asset.name}</h5>
+                            </div>
+                        <h3 class="coin-balance">{asset.balance}</h3>
+                    </div>
+                        {/if}
+                    {/each}
                 </div>
-                    {/if}
-                {/each}
             </div>
+    {:else if currentComponent === "Set Token Amount" }
+        <h3 id="send-token-title">{sendTokenTitle}</h3>
+        <input id="amount-input" type="text" autofocus inputmode="decimal" pattern="^\d*\.?\d*$" value="0" on:input={validateAmount}/>
+        <h6 id="amount-symbol">{currentAsset.symbol}</h6>
+        <h6>Available: {currentAsset.balance} {currentAsset.symbol}</h6>
+        <div class="address-details">
+            <h6 id="address-box-label">Address </h6>
+            <h6 id="address-box">{sendingAddress.slice(0, 4) + "..." + sendingAddress.slice(-5)}</h6>
         </div>
+        <button id="continue-transaction-button" disabled=true on:click={confirmAmount}>Continue</button>
+        <p id="amount-validation-label"></p>
+    {:else if currentComponent === "Confirm Transaction"}
+        <h3 id="send-token-title">{sendTokenTitle}</h3>
+        <h3>Confirm your transaction</h3>
+        <h3>You are about to send {confirmedTransactionAmount} {currentAsset.symbol}</h3>
+        <h4>Cost of the network: {gasPrice}</h4>
     {/if}
 </main>
 
@@ -185,7 +280,62 @@
         cursor: not-allowed;
     }
 
+
+
+    #amount-input {
+        font-size: 2rem;
+        height: 20vh;
+        width: 35%;
+        margin-left: 20%;
+        background-color: #f9f9f9;
+        outline: none;
+        border: none;
+        box-shadow: none;   
+    }
+
+    #amount-symbol {
+        margin-left: 10%;
+        margin-top: -5%;
+    }
+
+    .address-details {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+        border-bottom: 0.5px solid #ccc;
+        height: 8vh;
+        gap: 40%;
+    }
+
+    #address-box-label {
+        align-self: flex-start;
+
+    }
+
+    #continue-transaction-button {
+        height: 5vh;
+        margin-top: 10%;
+        border-radius: 2vh;
+        width: 30%;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+    }
     
+    #continue-transaction-button:disabled {
+        background-color: #ccc;
+        color: #666;
+        border: none;   
+        cursor: not-allowed;
+    }
+
+
+    #amount-validation-label {
+        font-size: 0.9rem;
+        color: red;
+        display: none;
+    }
+
 
     @media (min-width: 1800px) {
 

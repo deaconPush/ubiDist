@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -53,6 +54,31 @@ func (a *ETHAccount) RetrieveBalance() (string, error) {
 	}
 
 	return balance, nil
+}
+
+func (a *ETHAccount) EstimateGas(to, value string) (string, error) {
+	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
+	defer cancel()
+	valueWei, err := EtherToWei(value)
+	if err != nil {
+		return "", fmt.Errorf("error parsing ether transaction value: %v", err)
+	}
+
+	gasEstimate, err := a.client.EstimateGas(cliCtx, a.GetAddress(), to, valueWei)
+	if err != nil {
+		return "", fmt.Errorf("error estimating gas: %v", err)
+	}
+
+	gasPrice, err := a.client.GetGasPrice(cliCtx)
+	if err != nil {
+		return "", fmt.Errorf("error retrieving gas price %v", gasPrice)
+	}
+
+	gasEstimateBig := new(big.Int).SetUint64(gasEstimate)
+	totalGasCostWei := new(big.Int).Mul(gasEstimateBig, gasPrice)
+	weiFloat := new(big.Float).SetInt(totalGasCostWei)
+	etherValue := new(big.Float).Quo(weiFloat, big.NewFloat(1e18))
+	return etherValue.Text('f', 18), nil
 }
 
 func (a *ETHAccount) GetTokenName() string {
