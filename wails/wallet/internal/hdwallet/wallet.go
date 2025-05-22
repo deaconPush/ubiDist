@@ -24,6 +24,7 @@ type Account interface {
 	GetAddress() string
 	RetrieveBalance() (string, error)
 	GetTokenName() string
+	EstimateGas(from, value string) (string, error)
 }
 
 func CreateWallet(ctx context.Context, password string, ws *WalletStorage) (*Wallet, string, error) {
@@ -158,4 +159,18 @@ func (w *Wallet) GetTokenBalance(tokenName string) (float64, error) {
 
 func (w *Wallet) GetAccounts() []Account {
 	return w.Accounts
+}
+
+func (w *Wallet) EstimateTokenGas(tokenName, to, value string) (string, error) {
+	for _, account := range w.Accounts {
+		if account.GetTokenName() == tokenName {
+			gasPrice, err := account.EstimateGas(to, value)
+			if err != nil {
+				return "", fmt.Errorf("Error estimating gad price for token %s : %v", tokenName, err)
+			}
+
+			return gasPrice, nil
+		}
+	}
+	return "", fmt.Errorf("token not found: %s", tokenName)
 }
