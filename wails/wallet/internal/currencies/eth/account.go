@@ -81,6 +81,22 @@ func (a *ETHAccount) EstimateGas(to, value string) (string, error) {
 	return etherValue.Text('f', 18), nil
 }
 
+func (a *ETHAccount) SendTransaction(to, value string, privateKey *ecdsa.PrivateKey) (string, error) {
+	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
+	defer cancel()
+	weiValue, err := EtherToWei(value)
+	if err != nil {
+		return "", fmt.Errorf("error parsing ether value into wei: %v", err)
+	}
+
+	transactionHash, err := a.client.ProcessTransaction(cliCtx, a.GetAddress(), to, weiValue, privateKey)
+	if err != nil {
+		return "", fmt.Errorf("error procesing %s transaction %v", a.tokenName, err)
+	}
+
+	return transactionHash, nil
+}
+
 func (a *ETHAccount) GetTokenName() string {
 	return a.tokenName
 }

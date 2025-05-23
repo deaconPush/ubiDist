@@ -101,7 +101,7 @@ func (a *App) RecoverWallet(password string) error {
 func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
 	var assets = make(map[string]float64)
 	for _, token := range tokenSymbols {
-		balance, err := a.wallet.GetTokenBalance(token)
+		balance, err := a.wallet.GetBalance(token)
 		if err != nil {
 			return nil, fmt.Errorf("error getting balance for token %s: %v", token, err)
 		}
@@ -115,10 +115,19 @@ func (a *App) ValidateAddress(address, token string) bool {
 }
 
 func (a *App) EstimateGas(token, to, value string) (string, error) {
-	gasPrice, err := a.wallet.EstimateTokenGas(token, to, value)
+	gasPrice, err := a.wallet.EstimateGas(token, to, value)
 	if err != nil {
 		return "", fmt.Errorf("rrror estimating gas price %v", err)
 	}
 
 	return gasPrice, nil
+}
+
+func (a *App) SendTransaction(token, password, to, value string) (bool, error) {
+	ok, err := a.wallet.SendTransaction(token, password, to, value)
+	if err != nil {
+		return false, fmt.Errorf("Error sending %s transaction %v", token, err)
+	}
+
+	return ok, nil
 }
