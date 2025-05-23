@@ -22,6 +22,10 @@ export function RestoreWallet(arg1, arg2) {
   return window['go']['main']['App']['RestoreWallet'](arg1, arg2);
 }
 
+export function SendTransaction(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SendTransaction'](arg1, arg2, arg3, arg4);
+}
+
 export function ValidateAddress(arg1, arg2) {
   return window['go']['main']['App']['ValidateAddress'](arg1, arg2);
 }

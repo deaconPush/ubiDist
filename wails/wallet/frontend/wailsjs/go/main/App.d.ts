@@ -11,6 +11,8 @@ export function RecoverWallet(arg1:string):Promise<void>;
 
 export function RestoreWallet(arg1:string,arg2:string):Promise<void>;
 
+export function SendTransaction(arg1:string,arg2:string,arg3:string,arg4:string):Promise<boolean>;
+
 export function ValidateAddress(arg1:string,arg2:string):Promise<boolean>;
 
 export function ValidateMnemonic(arg1:string):Promise<boolean>;

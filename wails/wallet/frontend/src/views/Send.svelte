@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { assets } from '../stores';
+    import { assets, currentView } from '../stores';
     import type { Asset } from '../types/index';
-    import { ValidateAddress,EstimateGas } from '../../wailsjs/go/main/App'    
+    import { ValidateAddress,EstimateGas, SendTransaction } from '../../wailsjs/go/main/App'    
     
 
     $: userAssets = $assets;
@@ -10,7 +10,8 @@
     let sendTokenTitle: string;
     let sendingAddress: string;
     let confirmedTransactionAmount: number;
-    let gasPrice: string;
+    let gasPrice: number;
+    let showPasswordModal: boolean = false;
     
 
 
@@ -119,11 +120,45 @@
             confirmedTransactionAmount = parseFloat(transactionAmount);
             EstimateGas(currentAsset.symbol, sendingAddress, transactionAmount)
             .then((gas: string) => {
-                gasPrice = gas;
+                gasPrice = parseFloat(gas);
                 currentComponent = "Confirm Transaction";            
             })
             .catch((error) => alert("Error estimating gas price: " + error))
             
+        }
+
+        function confirmTransaction(): void {
+            const confirmTransactionButton = document.getElementById("confirm-transaction-button") as HTMLButtonElement;
+
+            if (!confirmTransactionButton) {
+                alert("HTML element is not valid");
+                return;
+            }
+
+            showPasswordModal = true;
+        }
+
+        function sendTransaction(e: Event): void {
+            e.preventDefault();
+            const passwordInput = document.getElementById('wallet-password') as HTMLInputElement;
+            if (!passwordInput) {
+                alert("HTML element is not valid");
+                return;
+            }
+
+            const password: string = passwordInput.value;
+            SendTransaction(currentAsset.symbol, password, sendingAddress, confirmedTransactionAmount.toString())
+            .then((ok: boolean) =>{
+                if (ok){
+                    alert("Successful transaction YAY!")
+                }
+                
+                currentView.set("Home");
+            }  )
+            .catch((error) => {
+                alert("Error processing transaction: " + error)
+            })
+
         }
 
     
@@ -171,9 +206,23 @@
         <p id="amount-validation-label"></p>
     {:else if currentComponent === "Confirm Transaction"}
         <h3 id="send-token-title">{sendTokenTitle}</h3>
-        <h3>Confirm your transaction</h3>
-        <h3>You are about to send {confirmedTransactionAmount} {currentAsset.symbol}</h3>
-        <h4>Cost of the network: {gasPrice}</h4>
+        <div class="confirm-transaction-container">
+            <h3>Confirm your transaction</h3>
+            <h3>You are about to send {confirmedTransactionAmount} {currentAsset.symbol}</h3>
+            <h4>Cost of the network: {gasPrice.toPrecision(4)} {currentAsset.symbol}</h4>
+        </div>
+        <button id="confirm-transaction-button" on:click={confirmTransaction}>Confirm</button>
+        {#if showPasswordModal === true} 
+            <div class="overlay">
+                <form class="form-container">
+                    <div class="input-group">
+                    <label for="password">To proceed with the transaction you need to sign it with your password.</label>
+                    <input type="password" id="wallet-password" />
+                    <p id="password-validation-label"></p>
+                    <button id="send-transaction-button" on:click={sendTransaction}>Send</button>
+                </div>
+            </div>
+        {/if}
     {/if}
 </main>
 
@@ -335,6 +384,80 @@
         color: red;
         display: none;
     }
+
+    .confirm-transaction-container {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        background: #fefefe;
+        transition: background 0.3s;
+        border-radius: 3vh;
+        width: 65%;
+    }
+
+    #confirm-transaction-button {
+        width: 60%;
+        margin-top: 5%;
+        border-radius: 2vh;
+        font-size: 1.1rem;
+        height: 5vh;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        align-content: center;
+        height: 25vh;
+        width: 65%;
+        border-radius: 4vh;
+        padding-top: 6%;
+        background-color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #password-validation-label {
+        font-size: 0.9rem;
+        color: red;
+        display: none;
+    }
+
+    #wallet-password {
+        padding: 1.5%;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 2.5vh;
+        color: #333;
+        background-color: #fefefe;
+        height: 3vh;
+        width: 60%;
+    }
+
+    #send-transaction-button {
+        margin-top: 2%;
+        width: 30%;
+        height: 5vh;
+        border-radius: 2vh;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+
+    
 
 
     @media (min-width: 1800px) {
