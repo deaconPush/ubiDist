@@ -2,6 +2,7 @@ package hdwallet
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"wallet/internal/currencies/eth"
 	"wallet/internal/utils"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
@@ -25,6 +27,7 @@ type Account interface {
 	RetrieveBalance() (string, error)
 	GetTokenName() string
 	EstimateGas(from, value string) (string, error)
+	SendTransaction(to, value string, privateKey *ecdsa.PrivateKey) (string, error)
 }
 
 func CreateWallet(ctx context.Context, password string, ws *WalletStorage) (*Wallet, string, error) {
@@ -138,7 +141,7 @@ func (w *Wallet) CreateETHAccount(ctx context.Context, password string) (*eth.ET
 	return ethAccount, nil
 }
 
-func (w *Wallet) GetTokenBalance(tokenName string) (float64, error) {
+func (w *Wallet) GetBalance(tokenName string) (float64, error) {
 	for _, account := range w.Accounts {
 		if account.GetTokenName() == tokenName {
 			hexBalance, err := account.RetrieveBalance()
@@ -161,7 +164,7 @@ func (w *Wallet) GetAccounts() []Account {
 	return w.Accounts
 }
 
-func (w *Wallet) EstimateTokenGas(tokenName, to, value string) (string, error) {
+func (w *Wallet) EstimateGas(tokenName, to, value string) (string, error) {
 	for _, account := range w.Accounts {
 		if account.GetTokenName() == tokenName {
 			gasPrice, err := account.EstimateGas(to, value)
@@ -173,4 +176,43 @@ func (w *Wallet) EstimateTokenGas(tokenName, to, value string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("token not found: %s", tokenName)
+}
+
+func (w *Wallet) SendTransaction(tokenName, password, to, value string) (bool, error) {
+	dbCtx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+	defer cancel()
+	pubKeyData, err := w.publicKey.Serialize()
+	if err != nil {
+		return false, fmt.Errorf("error serializing master public key: %v", err)
+	}
+
+	pubKeyHex := hex.EncodeToString(pubKeyData)
+	masterKey, err := w.walletDB.RetrieveRootKeyFromDB(dbCtx, password, pubKeyHex)
+	if err != nil {
+		return false, fmt.Errorf("error retrieving key from DB: %v", err)
+	}
+	for _, account := range w.Accounts {
+		if account.GetTokenName() == tokenName {
+			ethKey, err := utils.DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
+			// Modify utils derive child Key to accept token and number of account
+			if err != nil {
+				return false, fmt.Errorf("error deriving ETH key: %v", err)
+			}
+
+			privateKey, err := crypto.ToECDSA(ethKey.Key)
+			if err != nil {
+				return false, fmt.Errorf("failed to convert master key to ECDSA: %w", err)
+			}
+
+			_, err = account.SendTransaction(to, value, privateKey)
+			if err != nil {
+				return false, fmt.Errorf("failed to process %s transaction %v", tokenName, err)
+			}
+
+			// store transaction as pending with the hash in the sqlite db
+			return true, nil
+
+		}
+	}
+	return false, fmt.Errorf("token not found: %s", tokenName)
 }
