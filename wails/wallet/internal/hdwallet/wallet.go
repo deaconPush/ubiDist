@@ -17,7 +17,7 @@ import (
 
 type Wallet struct {
 	publicKey *bip32.Key
-	Accounts  []Account
+	Accounts  map[string]Account
 	walletDB  *WalletStorage
 	ctx       context.Context
 }
@@ -43,7 +43,7 @@ func CreateWallet(ctx context.Context, password string, ws *WalletStorage) (*Wal
 	}
 
 	storeMasterKey(ctx, ws, password, masterKey)
-	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws, ctx: ctx}, mnemonic, nil
+	return &Wallet{publicKey: masterKey.PublicKey(), Accounts: make(map[string]Account), walletDB: ws, ctx: ctx}, mnemonic, nil
 }
 
 func RestoreWallet(ctx context.Context, password string, mnemonic string, ws *WalletStorage) (*Wallet, error) {
@@ -58,7 +58,7 @@ func RestoreWallet(ctx context.Context, password string, mnemonic string, ws *Wa
 		return nil, fmt.Errorf("error storing master key: %v", err)
 	}
 
-	return &Wallet{publicKey: masterKey.PublicKey(), walletDB: ws, ctx: ctx}, nil
+	return &Wallet{publicKey: masterKey.PublicKey(), Accounts: make(map[string]Account), walletDB: ws, ctx: ctx}, nil
 }
 
 func RecoverWallet(ctx context.Context, password string, ws *WalletStorage) (*Wallet, error) {
@@ -72,6 +72,7 @@ func RecoverWallet(ctx context.Context, password string, ws *WalletStorage) (*Wa
 	wallet := &Wallet{
 		publicKey: pubKey,
 		walletDB:  ws,
+		Accounts:  make(map[string]Account),
 		ctx:       ctx,
 	}
 	return wallet, nil
@@ -105,20 +106,22 @@ func storeMasterKey(ctx context.Context, ws *WalletStorage, password string, mas
 	return nil
 }
 
-func (w *Wallet) Initialize(password string) error {
-	dbCtx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
-	defer cancel()
-	ethAccount, err := w.CreateETHAccount(dbCtx, password)
-	if err != nil {
-		return fmt.Errorf("error creating ETH account: %v", err)
+func (w *Wallet) Initialize(tokens []string, password string) error {
+	for _, token := range tokens {
+		account, err := w.CreateAccount(w.ctx, password, token)
+		if err != nil {
+			return fmt.Errorf("error creating %s account: %v", token, err)
+		}
+
+		w.Accounts[token] = account
 	}
 
-	w.Accounts = append(w.Accounts, ethAccount)
 	return nil
 }
 
-func (w *Wallet) CreateETHAccount(ctx context.Context, password string) (*eth.ETHAccount, error) {
+func (w *Wallet) CreateAccount(ctx context.Context, password, token string) (Account, error) {
 	pubKeyData, err := w.publicKey.Serialize()
+	var account Account
 	if err != nil {
 		return nil, fmt.Errorf("error serializing master public key: %v", err)
 	}
@@ -129,12 +132,23 @@ func (w *Wallet) CreateETHAccount(ctx context.Context, password string) (*eth.ET
 		return nil, fmt.Errorf("error retrieving key from DB: %v", err)
 	}
 
+	if token == "ETH" {
+		account, err = createETHAccount(ctx, masterKey)
+		if err != nil {
+			return nil, fmt.Errorf("rrror creating ETH account: %v", err)
+		}
+	}
+
+	return account, nil
+}
+
+func createETHAccount(ctx context.Context, masterKey *bip32.Key) (*eth.ETHAccount, error) {
 	ethKey, err := utils.DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
 	if err != nil {
 		return nil, fmt.Errorf("error deriving ETH key: %v", err)
 	}
 
-	ethAccount, err := eth.NewETHAccount(w.ctx, ethKey, "ETH")
+	ethAccount, err := eth.NewETHAccount(ctx, ethKey, "ETH")
 	if err != nil {
 		return nil, fmt.Errorf("error creating ETH account: %v", err)
 	}
@@ -142,43 +156,43 @@ func (w *Wallet) CreateETHAccount(ctx context.Context, password string) (*eth.ET
 }
 
 func (w *Wallet) GetBalance(token string) (float64, error) {
-	for _, account := range w.Accounts {
-		if account.GetTokenName() == token {
-			hexBalance, err := account.RetrieveBalance()
-			if err != nil {
-				return 0, fmt.Errorf("error retrieving balance: %v", err)
-			}
-
-			balance, err := eth.HexToEther(hexBalance)
-			if err != nil {
-				return 0, fmt.Errorf("error converting balance: %v", err)
-			}
-
-			return strconv.ParseFloat(balance, 64)
-		}
+	account, ok := w.Accounts[token]
+	if !ok {
+		return 0, fmt.Errorf("token not found: %s", token)
 	}
-	return 0, fmt.Errorf("token not found: %s", token)
-}
 
-func (w *Wallet) GetAccounts() []Account {
-	return w.Accounts
+	hexBalance, err := account.RetrieveBalance()
+	if err != nil {
+		return 0, fmt.Errorf("error retrieving balance: %v", err)
+	}
+
+	balance, err := eth.HexToEther(hexBalance)
+	if err != nil {
+		return 0, fmt.Errorf("error converting balance: %v", err)
+	}
+
+	return strconv.ParseFloat(balance, 64)
 }
 
 func (w *Wallet) EstimateGas(token, to, value string) (string, error) {
-	for _, account := range w.Accounts {
-		if account.GetTokenName() == token {
-			gasPrice, err := account.EstimateGas(to, value)
-			if err != nil {
-				return "", fmt.Errorf("error estimating gad price for token %s : %v", token, err)
-			}
-
-			return gasPrice, nil
-		}
+	account, ok := w.Accounts[token]
+	if !ok {
+		return "", fmt.Errorf("token not found: %s", token)
 	}
-	return "", fmt.Errorf("token not found: %s", token)
+	gasPrice, err := account.EstimateGas(to, value)
+	if err != nil {
+		return "", fmt.Errorf("error estimating gad price for token %s : %v", token, err)
+	}
+
+	return gasPrice, nil
 }
 
 func (w *Wallet) SendTransaction(token, password, to, value string) (bool, error) {
+	account, ok := w.Accounts[token]
+	if !ok {
+		return false, fmt.Errorf("token not found: %s", token)
+	}
+
 	dbCtx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
 	defer cancel()
 	pubKeyData, err := w.publicKey.Serialize()
@@ -191,52 +205,48 @@ func (w *Wallet) SendTransaction(token, password, to, value string) (bool, error
 	if err != nil {
 		return false, fmt.Errorf("error retrieving key from DB: %v", err)
 	}
-	for _, account := range w.Accounts {
-		if account.GetTokenName() == token {
-			ethKey, err := utils.DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
-			// Modify utils derive child Key to accept token and number of account
-			if err != nil {
-				return false, fmt.Errorf("error deriving ETH key: %v", err)
-			}
 
-			privateKey, err := crypto.ToECDSA(ethKey.Key)
-			if err != nil {
-				return false, fmt.Errorf("failed to convert master key to ECDSA: %w", err)
-			}
-
-			transactionHash, err := account.SendTransaction(to, value, privateKey)
-			if err != nil {
-				return false, fmt.Errorf("failed to process %s transaction %v", token, err)
-			}
-
-			var status string
-			if transactionHash == "0x0000000000000000000000000000000000000000000000000000000000000000" {
-				status = "PENDING"
-			} else {
-				status = "COMPLETED"
-			}
-
-			err = w.walletDB.SaveTransactionInDB(dbCtx, account.GetAddress(), to, value, status)
-			if err != nil {
-				return true, fmt.Errorf("error saving transaction into DB: %v", err)
-			}
-
-			// store transaction as pending with the hash in the sqlite db
-			return true, nil
-
-		}
+	ethKey, err := utils.DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
+	// Also refactor this logic to sendEthTransaction
+	// Modify utils derive child Key to accept token and number of account
+	if err != nil {
+		return false, fmt.Errorf("error deriving ETH key: %v", err)
 	}
-	return false, fmt.Errorf("token not found: %s", token)
+
+	privateKey, err := crypto.ToECDSA(ethKey.Key)
+	if err != nil {
+		return false, fmt.Errorf("failed to convert master key to ECDSA: %w", err)
+	}
+
+	transactionHash, err := account.SendTransaction(to, value, privateKey)
+	if err != nil {
+		return false, fmt.Errorf("failed to process %s transaction %v", token, err)
+	}
+
+	var status string
+	if transactionHash == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+		status = "PENDING"
+	} else {
+		status = "COMPLETED"
+	}
+
+	err = w.walletDB.SaveTransactionInDB(dbCtx, account.GetAddress(), to, value, status)
+	if err != nil {
+		return true, fmt.Errorf("error saving transaction into DB: %v", err)
+	}
+
+	// store transaction as pending with the hash in the sqlite db
+	return true, nil
 }
 
-func (w *Wallet) GetTransactions() ([]WalletTransaction, error) {
+func (w *Wallet) GetTransactions(token string) ([]WalletTransaction, error) {
+	account, ok := w.Accounts[token]
+	if !ok {
+		return nil, fmt.Errorf("token not found: %s", token)
+	}
+
 	dbCtx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
 	defer cancel()
 
-	pubKeyData, err := w.publicKey.Serialize()
-	if err != nil {
-		return nil, fmt.Errorf("error serializing master public key: %v", err)
-	}
-
-	return w.walletDB.GetTransactions(dbCtx, string(pubKeyData))
+	return w.walletDB.GetTransactions(dbCtx, account.GetAddress())
 }
