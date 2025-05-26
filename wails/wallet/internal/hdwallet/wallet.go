@@ -169,7 +169,7 @@ func (w *Wallet) EstimateGas(token, to, value string) (string, error) {
 		if account.GetTokenName() == token {
 			gasPrice, err := account.EstimateGas(to, value)
 			if err != nil {
-				return "", fmt.Errorf("Error estimating gad price for token %s : %v", token, err)
+				return "", fmt.Errorf("error estimating gad price for token %s : %v", token, err)
 			}
 
 			return gasPrice, nil
@@ -204,9 +204,21 @@ func (w *Wallet) SendTransaction(token, password, to, value string) (bool, error
 				return false, fmt.Errorf("failed to convert master key to ECDSA: %w", err)
 			}
 
-			_, err = account.SendTransaction(to, value, privateKey)
+			transactionHash, err := account.SendTransaction(to, value, privateKey)
 			if err != nil {
 				return false, fmt.Errorf("failed to process %s transaction %v", token, err)
+			}
+
+			var status string
+			if transactionHash == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+				status = "PENDING"
+			} else {
+				status = "COMPLETED"
+			}
+
+			err = w.walletDB.SaveTransactionInDB(dbCtx, account.GetAddress(), to, value, status)
+			if err != nil {
+				return true, fmt.Errorf("error saving transaction into DB: %v", err)
 			}
 
 			// store transaction as pending with the hash in the sqlite db
@@ -215,4 +227,16 @@ func (w *Wallet) SendTransaction(token, password, to, value string) (bool, error
 		}
 	}
 	return false, fmt.Errorf("token not found: %s", token)
+}
+
+func (w *Wallet) GetTransactions() ([]WalletTransaction, error) {
+	dbCtx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+	defer cancel()
+
+	pubKeyData, err := w.publicKey.Serialize()
+	if err != nil {
+		return nil, fmt.Errorf("error serializing master public key: %v", err)
+	}
+
+	return w.walletDB.GetTransactions(dbCtx, string(pubKeyData))
 }
