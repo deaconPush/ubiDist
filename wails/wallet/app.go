@@ -117,7 +117,7 @@ func (a *App) ValidateAddress(address, token string) bool {
 func (a *App) EstimateGas(token, to, value string) (string, error) {
 	gasPrice, err := a.wallet.EstimateGas(token, to, value)
 	if err != nil {
-		return "", fmt.Errorf("rrror estimating gas price %v", err)
+		return "", fmt.Errorf("error estimating gas price %v", err)
 	}
 
 	return gasPrice, nil
@@ -126,8 +126,12 @@ func (a *App) EstimateGas(token, to, value string) (string, error) {
 func (a *App) SendTransaction(token, password, to, value string) (bool, error) {
 	ok, err := a.wallet.SendTransaction(token, password, to, value)
 	if err != nil {
-		return false, fmt.Errorf("Error sending %s transaction %v", token, err)
+		return false, fmt.Errorf("error sending %s transaction %v", token, err)
 	}
 
 	return ok, nil
+}
+
+func (a *App) GetTransactions() ([]hdwallet.WalletTransaction, error) {
+	return a.wallet.GetTransactions()
 }
