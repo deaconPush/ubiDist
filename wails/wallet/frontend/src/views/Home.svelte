@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { GetAssets } from  '../../wailsjs/go/main/App'
+    import { GetAssets, GetTransactions } from  '../../wailsjs/go/main/App'
     import { currentView, assets } from '../stores';
     import type { Asset } from '../types/index';
 
@@ -36,7 +36,18 @@
         currentView.set('Send');
     }
 
+    function getTransactions(): void {
+        GetTransactions("ETH")
+        .then((trans: any) => {
+            console.log(trans[0])
+        })
+        .catch((err) => {
+            alert("Error retrieving transactions " + err);
+        })
+    }
+
     initAssets();
+    getTransactions();
 </script>
 
 <main>
