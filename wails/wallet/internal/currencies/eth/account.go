@@ -45,9 +45,9 @@ func (a *ETHAccount) GetAddress() string {
 }
 
 func (a *ETHAccount) RetrieveBalance() (string, error) {
-	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
-	defer cancel()
-	balance, err := a.client.GetBalance(cliCtx, a.GetAddress())
+	// cliCtx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	// defer cancel()
+	balance, err := a.client.GetBalance(context.Background(), a.GetAddress())
 	if err != nil {
 		return "", fmt.Errorf("error retrieving balance: %v", err)
 	}

@@ -16,9 +16,10 @@ type WalletStorage struct {
 }
 
 type WalletTransaction struct {
-	Sender    string
-	Recipient string
-	Status    string
+	Sender    string `json:"sender"`
+	Recipient string `json:"recipient"`
+	Status    string `json:"status"`
+	Value     string `json:"value"`
 }
 
 func NewWalletStorage(filePath string, ctx context.Context) (*WalletStorage, error) {
@@ -37,7 +38,7 @@ func NewWalletStorage(filePath string, ctx context.Context) (*WalletStorage, err
 		return nil, fmt.Errorf("error creating wallets table: %v", err)
 	}
 
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS transactions (sender TEXT PRIMARY KEY, recipient TEXT, status TEXT)")
+	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS transactions (sender TEXT, recipient TEXT, value TEXT, status TEXT)")
 	if err != nil {
 		return nil, fmt.Errorf("error creating wallets table: %v", err)
 	}
@@ -55,19 +56,21 @@ func (ws *WalletStorage) WalletExists(ctx context.Context) (bool, error) {
 	return count > 0, nil
 }
 
-func (ws *WalletStorage) GetTransactions(ctx context.Context, pubKey string) ([]WalletTransaction, error) {
+func (ws *WalletStorage) GetTransactions(ctx context.Context, pubKeyHex string) ([]WalletTransaction, error) {
 	var transactions []WalletTransaction
-	rows, err := ws.db.QueryContext(ctx, "SELECT * FROM transactions where sender=?", pubKey)
+	rows, err := ws.db.QueryContext(ctx, "SELECT * FROM transactions where sender=?", pubKeyHex)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving transactions from db: %v", err)
 	}
 
 	defer rows.Close()
+
 	for rows.Next() {
 		var transaction WalletTransaction
-		if err := rows.Scan(&transaction.Sender, &transaction.Recipient, &transaction.Status); err != nil {
-			return nil, fmt.Errorf("error parsing db transaction data")
+		if err := rows.Scan(&transaction.Sender, &transaction.Recipient, &transaction.Value, &transaction.Status); err != nil {
+			return nil, fmt.Errorf("error parsing db transaction data: %v", err)
 		}
+
 		transactions = append(transactions, transaction)
 	}
 
@@ -166,7 +169,7 @@ func (ws *WalletStorage) RetrievePublicKeyFromDB(ctx context.Context) (*bip32.Ke
 }
 
 func (ws *WalletStorage) SaveTransactionInDB(ctx context.Context, from, to, value, status string) error {
-	result, err := ws.db.ExecContext(ctx, "INSERT INTO transactions (from, to, value, status) VALUES(?, ?, ?, ?)")
+	result, err := ws.db.ExecContext(ctx, "INSERT INTO transactions (sender, recipient, value, status) VALUES(?, ?, ?, ?)", from, to, value, status)
 	if err != nil {
 		return fmt.Errorf("error saving transaction into DB: %v", err)
 	}
