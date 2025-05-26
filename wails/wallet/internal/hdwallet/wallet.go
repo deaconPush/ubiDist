@@ -141,9 +141,9 @@ func (w *Wallet) CreateETHAccount(ctx context.Context, password string) (*eth.ET
 	return ethAccount, nil
 }
 
-func (w *Wallet) GetBalance(tokenName string) (float64, error) {
+func (w *Wallet) GetBalance(token string) (float64, error) {
 	for _, account := range w.Accounts {
-		if account.GetTokenName() == tokenName {
+		if account.GetTokenName() == token {
 			hexBalance, err := account.RetrieveBalance()
 			if err != nil {
 				return 0, fmt.Errorf("error retrieving balance: %v", err)
@@ -157,28 +157,28 @@ func (w *Wallet) GetBalance(tokenName string) (float64, error) {
 			return strconv.ParseFloat(balance, 64)
 		}
 	}
-	return 0, fmt.Errorf("token not found: %s", tokenName)
+	return 0, fmt.Errorf("token not found: %s", token)
 }
 
 func (w *Wallet) GetAccounts() []Account {
 	return w.Accounts
 }
 
-func (w *Wallet) EstimateGas(tokenName, to, value string) (string, error) {
+func (w *Wallet) EstimateGas(token, to, value string) (string, error) {
 	for _, account := range w.Accounts {
-		if account.GetTokenName() == tokenName {
+		if account.GetTokenName() == token {
 			gasPrice, err := account.EstimateGas(to, value)
 			if err != nil {
-				return "", fmt.Errorf("Error estimating gad price for token %s : %v", tokenName, err)
+				return "", fmt.Errorf("Error estimating gad price for token %s : %v", token, err)
 			}
 
 			return gasPrice, nil
 		}
 	}
-	return "", fmt.Errorf("token not found: %s", tokenName)
+	return "", fmt.Errorf("token not found: %s", token)
 }
 
-func (w *Wallet) SendTransaction(tokenName, password, to, value string) (bool, error) {
+func (w *Wallet) SendTransaction(token, password, to, value string) (bool, error) {
 	dbCtx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
 	defer cancel()
 	pubKeyData, err := w.publicKey.Serialize()
@@ -192,7 +192,7 @@ func (w *Wallet) SendTransaction(tokenName, password, to, value string) (bool, e
 		return false, fmt.Errorf("error retrieving key from DB: %v", err)
 	}
 	for _, account := range w.Accounts {
-		if account.GetTokenName() == tokenName {
+		if account.GetTokenName() == token {
 			ethKey, err := utils.DeriveChildKey(masterKey, "m/44'/60'/0'/0/0")
 			// Modify utils derive child Key to accept token and number of account
 			if err != nil {
@@ -206,7 +206,7 @@ func (w *Wallet) SendTransaction(tokenName, password, to, value string) (bool, e
 
 			_, err = account.SendTransaction(to, value, privateKey)
 			if err != nil {
-				return false, fmt.Errorf("failed to process %s transaction %v", tokenName, err)
+				return false, fmt.Errorf("failed to process %s transaction %v", token, err)
 			}
 
 			// store transaction as pending with the hash in the sqlite db
@@ -214,5 +214,5 @@ func (w *Wallet) SendTransaction(tokenName, password, to, value string) (bool, e
 
 		}
 	}
-	return false, fmt.Errorf("token not found: %s", tokenName)
+	return false, fmt.Errorf("token not found: %s", token)
 }
