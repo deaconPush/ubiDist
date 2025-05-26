@@ -205,6 +205,10 @@ main {
             margin-top: 8%;
             width: 88%;
         }
+
+        .coin-balance {
+            margin-left: 52%;
+        }
     }
   
   
