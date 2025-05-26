@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -74,11 +73,8 @@ func (a *ETHAccount) EstimateGas(to, value string) (string, error) {
 		return "", fmt.Errorf("error retrieving gas price %v", gasPrice)
 	}
 
-	gasEstimateBig := new(big.Int).SetUint64(gasEstimate)
-	totalGasCostWei := new(big.Int).Mul(gasEstimateBig, gasPrice)
-	weiFloat := new(big.Float).SetInt(totalGasCostWei)
-	etherValue := new(big.Float).Quo(weiFloat, big.NewFloat(1e18))
-	return etherValue.Text('f', 18), nil
+	totalCostEther := CalculateTotalGasCostInEther(gasEstimate, gasPrice)
+	return totalCostEther, nil
 }
 
 func (a *ETHAccount) SendTransaction(to, value string, privateKey *ecdsa.PrivateKey) (string, error) {
