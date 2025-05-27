@@ -230,12 +230,13 @@ func (w *Wallet) SendTransaction(token, password, to, value string) (bool, error
 		status = "COMPLETED"
 	}
 
-	err = w.walletDB.SaveTransactionInDB(dbCtx, account.GetAddress(), to, value, status)
+	now := time.Now().UTC()
+	isoDate := now.Format(time.RFC3339)
+	err = w.walletDB.SaveTransactionInDB(dbCtx, account.GetAddress(), to, value, status, token, isoDate)
 	if err != nil {
 		return true, fmt.Errorf("error saving transaction into DB: %v", err)
 	}
 
-	// store transaction as pending with the hash in the sqlite db
 	return true, nil
 }
 
