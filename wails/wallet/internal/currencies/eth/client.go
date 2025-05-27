@@ -370,3 +370,12 @@ func EtherToWei(ether string) (*big.Int, error) {
 
 	return wei, nil
 }
+
+func CalculateTotalGasCostInEther(gasEstimate uint64, gasPrice *big.Int) string {
+	gasEstimateBigInt := new(big.Int).SetUint64(gasEstimate)
+	totalGasCostWei := new(big.Int).Mul(gasEstimateBigInt, gasPrice)
+	weiFloat := new(big.Float).SetInt(totalGasCostWei)
+	etherValue := new(big.Float).Quo(weiFloat, big.NewFloat(1e18))
+
+	return etherValue.Text('f', 18)
+}

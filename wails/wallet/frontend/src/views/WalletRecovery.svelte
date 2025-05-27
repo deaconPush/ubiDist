@@ -1,6 +1,6 @@
 <script lang="ts">
     import logo from '../assets/images/pear-logo.png';
-    import { currentView } from "../stores";
+    import { currentView, availableTokens } from "../stores";
     import { RecoverWallet, WalletExists } from "../../wailsjs/go/main/App";
     
     let walletExists = false;
@@ -18,11 +18,11 @@
     checkWallet();
 
     function createWallet(): void {
-      currentView.set("CreateWallet");
+      currentView.set("Create Wallet");
     }
   
     function importWallet(): void {
-      currentView.set("RestoreWallet");
+      currentView.set("Restore Wallet");
     }
 
     function checkInput(): void {
@@ -46,7 +46,7 @@
       }
       
       const password: string = passwordInput.value;
-      RecoverWallet(password)
+      RecoverWallet($availableTokens, password)
       .then(() => {
         currentView.set("Home");
       })

@@ -45,14 +45,52 @@ func (a *ETHAccount) GetAddress() string {
 }
 
 func (a *ETHAccount) RetrieveBalance() (string, error) {
-	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
-	defer cancel()
-	balance, err := a.client.GetBalance(cliCtx, a.GetAddress())
+	// cliCtx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	// defer cancel()
+	balance, err := a.client.GetBalance(context.Background(), a.GetAddress())
 	if err != nil {
 		return "", fmt.Errorf("error retrieving balance: %v", err)
 	}
 
 	return balance, nil
+}
+
+func (a *ETHAccount) EstimateGas(to, value string) (string, error) {
+	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
+	defer cancel()
+	valueWei, err := EtherToWei(value)
+	if err != nil {
+		return "", fmt.Errorf("error parsing ether transaction value: %v", err)
+	}
+
+	gasEstimate, err := a.client.EstimateGas(cliCtx, a.GetAddress(), to, valueWei)
+	if err != nil {
+		return "", fmt.Errorf("error estimating gas: %v", err)
+	}
+
+	gasPrice, err := a.client.GetGasPrice(cliCtx)
+	if err != nil {
+		return "", fmt.Errorf("error retrieving gas price %v", gasPrice)
+	}
+
+	totalCostEther := CalculateTotalGasCostInEther(gasEstimate, gasPrice)
+	return totalCostEther, nil
+}
+
+func (a *ETHAccount) SendTransaction(to, value string, privateKey *ecdsa.PrivateKey) (string, error) {
+	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
+	defer cancel()
+	weiValue, err := EtherToWei(value)
+	if err != nil {
+		return "", fmt.Errorf("error parsing ether value into wei: %v", err)
+	}
+
+	transactionHash, err := a.client.ProcessTransaction(cliCtx, a.GetAddress(), to, weiValue, privateKey)
+	if err != nil {
+		return "", fmt.Errorf("error procesing %s transaction %v", a.tokenName, err)
+	}
+
+	return transactionHash, nil
 }
 
 func (a *ETHAccount) GetTokenName() string {
