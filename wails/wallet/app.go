@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"wallet/internal/hdwallet"
+	"wallet/internal/utils"
 
 	"github.com/tyler-smith/go-bip39"
 )
@@ -52,14 +53,14 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 	return bip39.IsMnemonicValid(mnemonic)
 }
 
-func (a *App) CreateWallet(password string) (string, error) {
+func (a *App) CreateWallet(tokens []string, password string) (string, error) {
 	wallet, mnemonic, err := hdwallet.CreateWallet(a.ctx, password, a.walletDB)
 	if err != nil {
 		return "", fmt.Errorf("error creating wallet: %v", err)
 	}
 
 	a.wallet = wallet
-	err = wallet.Initialize(password)
+	err = wallet.Initialize(tokens, password)
 	if err != nil {
 		return "", fmt.Errorf("error initializing wallet: %v", err)
 	}
@@ -67,14 +68,14 @@ func (a *App) CreateWallet(password string) (string, error) {
 	return mnemonic, nil
 }
 
-func (a *App) RestoreWallet(password, mnemonic string) error {
+func (a *App) RestoreWallet(tokens []string, password, mnemonic string) error {
 	wallet, err := hdwallet.RestoreWallet(a.ctx, password, mnemonic, a.walletDB)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %v", err)
 	}
 
 	a.wallet = wallet
-	err = wallet.Initialize(password)
+	err = wallet.Initialize(tokens, password)
 	if err != nil {
 		return fmt.Errorf("error initializing wallet: %v", err)
 	}
@@ -82,14 +83,14 @@ func (a *App) RestoreWallet(password, mnemonic string) error {
 	return nil
 }
 
-func (a *App) RecoverWallet(password string) error {
+func (a *App) RecoverWallet(tokens []string, password string) error {
 	wallet, err := hdwallet.RecoverWallet(a.ctx, password, a.walletDB)
 	if err != nil {
 		return fmt.Errorf("error recovering wallet: %v", err)
 	}
 
 	a.wallet = wallet
-	err = wallet.Initialize(password)
+	err = wallet.Initialize(tokens, password)
 	if err != nil {
 		return fmt.Errorf("error initializing wallet: %v", err)
 	}
@@ -100,7 +101,7 @@ func (a *App) RecoverWallet(password string) error {
 func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
 	var assets = make(map[string]float64)
 	for _, token := range tokenSymbols {
-		balance, err := a.wallet.GetTokenBalance(token)
+		balance, err := a.wallet.GetBalance(token)
 		if err != nil {
 			return nil, fmt.Errorf("error getting balance for token %s: %v", token, err)
 		}
@@ -108,4 +109,29 @@ func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
 		assets[token] = balance
 	}
 	return assets, nil
+}
+func (a *App) ValidateAddress(address, token string) bool {
+	return utils.ValidateAddress(address, token)
+}
+
+func (a *App) EstimateGas(token, to, value string) (string, error) {
+	gasPrice, err := a.wallet.EstimateGas(token, to, value)
+	if err != nil {
+		return "", fmt.Errorf("error estimating gas price %v", err)
+	}
+
+	return gasPrice, nil
+}
+
+func (a *App) SendTransaction(token, password, to, value string) (bool, error) {
+	ok, err := a.wallet.SendTransaction(token, password, to, value)
+	if err != nil {
+		return false, fmt.Errorf("error sending %s transaction %v", token, err)
+	}
+
+	return ok, nil
+}
+
+func (a *App) GetTransactions(token string) ([]hdwallet.WalletTransaction, error) {
+	return a.wallet.GetTransactions(token)
 }
