@@ -4,3 +4,12 @@ export type Asset = {
     name: string;
     logoPath: string;
 }
+
+export type Transaction = {
+    sender: string;
+    recipient: string;
+    status: string;
+    value: string;
+    token: string; 
+    createdAt: string; 
+}
