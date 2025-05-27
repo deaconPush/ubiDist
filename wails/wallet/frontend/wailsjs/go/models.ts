@@ -5,6 +5,8 @@ export namespace hdwallet {
 	    recipient: string;
 	    status: string;
 	    value: string;
+	    token: string;
+	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new WalletTransaction(source);
@@ -16,6 +18,8 @@ export namespace hdwallet {
 	        this.recipient = source["recipient"];
 	        this.status = source["status"];
 	        this.value = source["value"];
+	        this.token = source["token"];
+	        this.createdAt = source["createdAt"];
 	    }
 	}
 

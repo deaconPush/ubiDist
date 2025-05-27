@@ -150,10 +150,9 @@
             SendTransaction(currentAsset.symbol, password, sendingAddress, confirmedTransactionAmount.toString())
             .then((ok: boolean) =>{
                 if (ok){
-                    alert("Successful transaction YAY!")
+                    currentView.set("Home");    
                 }
                 
-                currentView.set("Home");
             }  )
             .catch((error) => {
                 alert("Error processing transaction: " + error)
@@ -187,7 +186,7 @@
                                 <h6 class="coin-description-symbol">{asset.symbol}</h6>
                                 <h5 class="coin-description-name">{asset.name}</h5>
                             </div>
-                        <h3 class="coin-balance">{asset.balance}</h3>
+                        <h3 class="coin-balance">{asset.balance.toFixed(2)}</h3>
                     </div>
                         {/if}
                     {/each}
