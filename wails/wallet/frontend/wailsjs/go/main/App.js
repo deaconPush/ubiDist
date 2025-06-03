@@ -6,16 +6,16 @@ export function CreateWallet(arg1, arg2) {
   return window['go']['main']['App']['CreateWallet'](arg1, arg2);
 }
 
-export function EstimateGas(arg1, arg2, arg3) {
-  return window['go']['main']['App']['EstimateGas'](arg1, arg2, arg3);
+export function EstimateGas(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['EstimateGas'](arg1, arg2, arg3, arg4);
 }
 
 export function GetAssets(arg1) {
   return window['go']['main']['App']['GetAssets'](arg1);
 }
 
-export function GetTransactions(arg1) {
-  return window['go']['main']['App']['GetTransactions'](arg1);
+export function GetTransactions() {
+  return window['go']['main']['App']['GetTransactions']();
 }
 
 export function RecoverWallet(arg1, arg2) {
@@ -26,8 +26,8 @@ export function RestoreWallet(arg1, arg2, arg3) {
   return window['go']['main']['App']['RestoreWallet'](arg1, arg2, arg3);
 }
 
-export function SendTransaction(arg1, arg2, arg3, arg4) {
-  return window['go']['main']['App']['SendTransaction'](arg1, arg2, arg3, arg4);
+export function SendTransaction(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['SendTransaction'](arg1, arg2, arg3, arg4, arg5);
 }
 
 export function ValidateAddress(arg1, arg2) {
