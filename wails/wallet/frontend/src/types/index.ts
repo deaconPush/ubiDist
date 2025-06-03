@@ -3,6 +3,7 @@ export type Asset = {
     symbol: string;
     name: string;
     logoPath: string;
+    accountIndex: number;
 }
 
 export type Transaction = {

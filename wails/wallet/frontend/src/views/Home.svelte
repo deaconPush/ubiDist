@@ -26,7 +26,8 @@
                     balance: assetsData[symbol],
                     symbol: symbol,
                     name: tokens[symbol],
-                    logoPath: getLogoPath(symbol)
+                    logoPath: getLogoPath(symbol),
+                    accountIndex: 0,
                 }
             ))
             assets.set(assetsArray);
@@ -41,7 +42,7 @@
     }
 
     function getTransactions(): void {
-        GetTransactions("ETH")
+        GetTransactions()
         .then((transactions: Transaction[]) => {
             if(transactions !== null) {
                 walletTransactions = transactions;
@@ -316,7 +317,7 @@ main {
         .last-transaction-container {
             margin-top: 3%;
             height: 16vh;
-            width: 87%;
+            width: 90%;
         }
     }
   

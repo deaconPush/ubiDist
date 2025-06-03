@@ -18,6 +18,11 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+var TokenCoinTypes = map[string]int{
+	"BTC": 0,  // Bitcoin
+	"ETH": 60, // Ethereum
+}
+
 func GenerateMnemonic() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
@@ -101,7 +106,17 @@ func deriveKey(password, salt []byte) ([]byte, []byte, error) {
 	return key, salt, nil
 }
 
-func DeriveChildKey(masterKey *bip32.Key, path string) (*bip32.Key, error) {
+func DeriveKeyForAccount(masterKey *bip32.Key, token string, accountIndex int) (*bip32.Key, error) {
+	coinType, ok := TokenCoinTypes[token]
+	if !ok {
+		return nil, fmt.Errorf("token not found for account derivation")
+	}
+
+	derivationPath := fmt.Sprintf("m/44'/%d'/0'/0/%d", coinType, accountIndex)
+	return deriveChildKey(masterKey, derivationPath)
+}
+
+func deriveChildKey(masterKey *bip32.Key, path string) (*bip32.Key, error) {
 	indices, err := parseDerivationPath(path)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing derivation path: %v", err)

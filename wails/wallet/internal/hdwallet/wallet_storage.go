@@ -58,9 +58,9 @@ func (ws *WalletStorage) WalletExists(ctx context.Context) (bool, error) {
 	return count > 0, nil
 }
 
-func (ws *WalletStorage) GetTransactions(ctx context.Context, pubKeyHex string) ([]WalletTransaction, error) {
+func (ws *WalletStorage) GetTransactions(ctx context.Context) ([]WalletTransaction, error) {
 	var transactions []WalletTransaction
-	rows, err := ws.db.QueryContext(ctx, "SELECT * FROM transactions where sender=? ORDER BY createdAt DESC", pubKeyHex)
+	rows, err := ws.db.QueryContext(ctx, "SELECT * FROM transactions ORDER BY createdAt DESC")
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving transactions from db: %v", err)
 	}
