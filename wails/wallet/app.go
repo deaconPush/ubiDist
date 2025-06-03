@@ -114,8 +114,8 @@ func (a *App) ValidateAddress(address, token string) bool {
 	return utils.ValidateAddress(address, token)
 }
 
-func (a *App) EstimateGas(token, to, value string) (string, error) {
-	gasPrice, err := a.wallet.EstimateGas(token, to, value)
+func (a *App) EstimateGas(token, to, value string, accountIndex int) (string, error) {
+	gasPrice, err := a.wallet.EstimateGas(token, to, value, accountIndex)
 	if err != nil {
 		return "", fmt.Errorf("error estimating gas price %v", err)
 	}
@@ -123,8 +123,8 @@ func (a *App) EstimateGas(token, to, value string) (string, error) {
 	return gasPrice, nil
 }
 
-func (a *App) SendTransaction(token, password, to, value string) (bool, error) {
-	ok, err := a.wallet.SendTransaction(token, password, to, value)
+func (a *App) SendTransaction(token, password, to, value string, accountIndex int) (bool, error) {
+	ok, err := a.wallet.SendTransaction(token, password, to, value, accountIndex)
 	if err != nil {
 		return false, fmt.Errorf("error sending %s transaction %v", token, err)
 	}
@@ -132,6 +132,6 @@ func (a *App) SendTransaction(token, password, to, value string) (bool, error) {
 	return ok, nil
 }
 
-func (a *App) GetTransactions(token string) ([]hdwallet.WalletTransaction, error) {
-	return a.wallet.GetTransactions(token)
+func (a *App) GetTransactions() ([]hdwallet.WalletTransaction, error) {
+	return a.wallet.GetTransactions()
 }
