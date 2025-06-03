@@ -107,7 +107,7 @@ func TestChildKeyGeneration(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			derivatedKey, err := DeriveChildKey(masterKey, tc.derivationPath)
+			derivatedKey, err := deriveChildKey(masterKey, tc.derivationPath)
 			if err != nil {
 				t.Errorf("Error deriving child key: %v", err)
 			}
@@ -164,6 +164,63 @@ func TestAddressValidation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			bool := ValidateAddress(tc.address, tc.token)
 			assertCorrectValue(t, bool, tc.isValid)
+		})
+	}
+
+}
+
+func TestAccountKeyDerivation(t *testing.T) {
+	mnemonic := "test test test test test test test test test test test junk"
+	seed := bip39.NewSeed(mnemonic, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		t.Errorf("Error generating master key")
+	}
+
+	cases := []struct {
+		name            string
+		coinType        string
+		masterKey       *bip32.Key
+		accountIndex    int
+		expectedAddress string
+	}{
+		{
+			name:            "1st ETH account",
+			coinType:        "ETH",
+			masterKey:       masterKey,
+			accountIndex:    0,
+			expectedAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+		},
+		{
+			name:            "4th ETH account",
+			coinType:        "ETH",
+			masterKey:       masterKey,
+			accountIndex:    4,
+			expectedAddress: "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+		},
+
+		{
+			name:            "8th ETH account",
+			coinType:        "ETH",
+			masterKey:       masterKey,
+			accountIndex:    8,
+			expectedAddress: "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			coinMasterKey, err := DeriveKeyForAccount(masterKey, tc.coinType, tc.accountIndex)
+			if err != nil {
+				t.Errorf("Error generating account number %d for coinType %s: %v", tc.accountIndex, tc.coinType, err)
+			}
+
+			coinPrivateKey, err := crypto.ToECDSA(coinMasterKey.Key)
+			if err != nil {
+				t.Errorf("failed to convert master key to ECDSA: %v", err)
+			}
+
+			assertCorrectValue(t, crypto.PubkeyToAddress(coinPrivateKey.PublicKey).Hex(), tc.expectedAddress)
 		})
 	}
 
