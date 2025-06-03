@@ -52,7 +52,7 @@
       })
       .catch((err) => {
         console.error(err);
-        alert("Invalid password");
+        alert("Invalid password: ", err);
       });
 
     }

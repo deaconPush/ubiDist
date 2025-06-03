@@ -118,7 +118,7 @@
 
             const transactionAmount: string = transactionAmountInput.value;
             confirmedTransactionAmount = parseFloat(transactionAmount);
-            EstimateGas(currentAsset.symbol, sendingAddress, transactionAmount)
+            EstimateGas(currentAsset.symbol, sendingAddress, transactionAmount, currentAsset.accountIndex)
             .then((gas: string) => {
                 gasPrice = parseFloat(gas);
                 currentComponent = "Confirm Transaction";            
@@ -147,7 +147,7 @@
             }
 
             const password: string = passwordInput.value;
-            SendTransaction(currentAsset.symbol, password, sendingAddress, confirmedTransactionAmount.toString())
+            SendTransaction(currentAsset.symbol, password, sendingAddress, confirmedTransactionAmount.toString(), currentAsset.accountIndex)
             .then((ok: boolean) =>{
                 if (ok){
                     currentView.set("Home");    
