@@ -147,7 +147,7 @@
             }
 
             const password: string = passwordInput.value;
-            SendTransaction(currentAsset.symbol, password, sendingAddress, confirmedTransactionAmount.toString(), currentAsset.accountIndex)
+            SendTransaction(currentAsset.symbol, password, sendingAddress, confirmedTransactionAmount.toString(), currentAsset.selectedAccount)
             .then((ok: boolean) =>{
                 if (ok){
                     currentView.set("Home");    
@@ -473,6 +473,10 @@
         .assets-container {
             margin-top: 3%;
             width: 88%;
+        }
+
+        .coin-balance {
+            margin-left: 51%;
         }
 
         #address-input {

@@ -82,6 +82,13 @@ func (a *ETHMasterAccount) GetAddress(accountIndex int) (string, error) {
 	return address, nil
 }
 
+func (a *ETHMasterAccount) GetAllAccounts() (map[int]string, error) {
+	dbCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
+	defer cancel()
+
+	return a.accountDB.GetAllAccounts(dbCtx)
+}
+
 func (a *ETHMasterAccount) RetrieveBalance(accountIndex int) (string, error) {
 	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
 	defer cancel()

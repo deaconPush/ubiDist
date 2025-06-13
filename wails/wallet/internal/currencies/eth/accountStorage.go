@@ -62,3 +62,29 @@ func (a *AccountStorage) GetAccountAddress(ctx context.Context, accountIndex int
 
 	return address, nil
 }
+
+func (a *AccountStorage) GetAllAccounts(ctx context.Context) (map[int]string, error) {
+	rows, err := a.db.QueryContext(ctx, "SELECT address, accountIndex FROM ethAccounts LIMIT 10")
+	Accounts := make(map[int]string)
+	if err != nil {
+		return nil, fmt.Errorf("error querying ethAccounts: %v", err)
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var accountIndex int
+		var address string
+		if err := rows.Scan(&address, &accountIndex); err != nil {
+			return nil, fmt.Errorf("error scanning row: %v", err)
+		}
+
+		Accounts[accountIndex] = address
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error retrieving ethAccounts rows from db: %v", err)
+	}
+
+	return Accounts, nil
+
+}
