@@ -41,7 +41,7 @@ func RestoreWallet(ctx context.Context, password, mnemonic string) (*hdwallet.Wa
 }
 
 func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
-	balanceFloat, err := wallet.GetTokenBalance(token)
+	balanceFloat, err := wallet.GetBalance(token, 0)
 	if err != nil {
 		return "", fmt.Errorf("error getting account: %v", err)
 	}
@@ -53,6 +53,7 @@ func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
+	tokens := []string{"ETH"}
 	var wallet *hdwallet.Wallet = nil
 	cliCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	client := eth.NewEthClient("http://localhost:8545")
@@ -75,7 +76,7 @@ func main() {
 				break
 			}
 
-			err = wallet.Initialize(password)
+			err = wallet.Initialize(tokens, password)
 			if err != nil {
 				fmt.Println("Error initializing wallet:", err)
 				break
@@ -98,7 +99,7 @@ func main() {
 				break
 			}
 
-			err = wallet.Initialize(password)
+			err = wallet.Initialize(tokens, password)
 			if err != nil {
 				fmt.Println("Error initializing wallet:", err)
 				break
