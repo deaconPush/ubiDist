@@ -40,13 +40,15 @@
             ValidateMnemonic(seedPhrase).then(isValid => {
                 if(isValid) {
                     confirmButton.disabled = false;
-                    validationLabel.style.display = 'none';
+                    validationLabel.style.visibility = 'hidden';
                 } else {
                     confirmButton.disabled = true;
-                    validationLabel.style.display = 'block';
+                    validationLabel.style.visibility = 'visible';
                     validationLabel.textContent = 'Invalid seed phrase';
                 }
             });
+        } else {
+            validationLabel.style.visibility = 'hidden';
         }
     } 
 </script>
@@ -132,7 +134,7 @@ h4 {
     color: #a94442; 
     padding: 0.8% 0.8%;
     border-radius: 1vh;
-    display: none;
+    visibility: hidden;
     transition: opacity 0.3s ease-in-out;
 }
 
@@ -254,7 +256,7 @@ h4 {
     .seed-words-container {
         grid-template-columns: repeat(3, minmax(52%, 1fr));
         column-gap: 10%;
-        row-gap: 50%;
+        row-gap: 35%;
         margin-left: 8%;
         margin-bottom: 38%;
     }
@@ -264,7 +266,7 @@ h4 {
     }   
 
     .validation-label{
-        margin-top: -2%;
+        margin-top: -21%;
         height: 4.5vh;
     }
 
