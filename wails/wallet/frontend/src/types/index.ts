@@ -3,8 +3,13 @@ export type Asset = {
     symbol: string;
     name: string;
     logoPath: string;
-    accountIndex: number;
+    accounts:  AccountMap
+    selectedAccount: number;
 }
+
+export type AccountMap = {
+    [key: number]: string;
+  };
 
 export type Transaction = {
     sender: string;

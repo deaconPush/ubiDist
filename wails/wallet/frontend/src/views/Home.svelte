@@ -1,33 +1,36 @@
 <script lang="ts">
     import { GetAssets, GetTransactions } from  '../../wailsjs/go/main/App'
-    import { currentView, assets } from '../stores';
+    import { currentView, assets, selectedAccounts } from '../stores';
     import type { Asset, Transaction } from '../types/index';
 
     const tokens: object = {
         'ETH': 'Ethereum'
-    };
+    };    
     let balance: number = 0;
     let assetsArray: Asset[] = [];
+    let tokenAccounts = $selectedAccounts;
     let displayTransactions: boolean = false;
     let walletTransactions: Transaction[];
     let lastTransaction: Transaction;
     let lastTransactionDate: string;
+    let showDropdown: Boolean = false;
+    let dropdownRef: HTMLDivElement;
 
     function getLogoPath(symbol: string): string {
         return `src/assets/logos/${symbol}.png`;
     }
 
     function initAssets(): void {
-        const tokenSymbols = Object.keys(tokens);
-        GetAssets(tokenSymbols)
+        GetAssets(tokenAccounts)
         .then((assetsData) => {
             assetsArray = Object.keys(assetsData).map((symbol) => (
                 {
-                    balance: assetsData[symbol],
+                    balance: assetsData[symbol]["balance"],
                     symbol: symbol,
                     name: tokens[symbol],
                     logoPath: getLogoPath(symbol),
-                    accountIndex: 0,
+                    selectedAccount: tokenAccounts[symbol],
+                    accounts: assetsData[symbol]["accounts"],
                 }
             ))
             assets.set(assetsArray);
@@ -57,10 +60,45 @@
         })
     }
 
+    function listTokenAccounts(asset: Asset): void {
+        showDropdown = true;
+    }
+
+    function selectAccount(asset: Asset, key: string) {
+        tokenAccounts[asset.symbol] = Number(key);
+        selectedAccounts.set(tokenAccounts)
+        GetAssets(tokenAccounts)
+        .then((assetsData) => {
+            assetsArray = Object.keys(assetsData).map((symbol) => (
+                {
+                    balance: assetsData[symbol]["balance"],
+                    symbol: symbol,
+                    name: tokens[symbol],
+                    logoPath: getLogoPath(symbol),
+                    selectedAccount: Number(key),
+                    accounts: assetsData[symbol]["accounts"],
+                }
+            ))
+            assets.set(assetsArray);
+            showDropdown = false;
+        })
+        .catch((error) => {
+            alert("Error fetching assets: " + error);
+        });
+  }
+
+    
+  function onWindowClick(event: MouseEvent): void {
+        if (dropdownRef.contains(event.target as Node) == false) {
+            showDropdown = false;
+        }
+    }
+
     initAssets();
     getTransactions();
 </script>
 
+<svelte:window on:click={onWindowClick} />
 <main>
         <div class="balance-container">
             <h4>Total Balance</h4>
@@ -83,7 +121,26 @@
                             <h6 class="coin-description-symbol">{asset.symbol}</h6>
                             <h5 class="coin-description-name">{asset.name}</h5>
                         </div>
-                        <h3 class="coin-balance">{asset.balance.toFixed(2)}</h3>
+                        <div class="account-details">
+                            <div class="account-dropdown" bind:this={dropdownRef}>
+                                <button   on:click={() => listTokenAccounts(asset)}
+                                    class="account-dropdown-button">{asset.accounts[asset.selectedAccount].slice(0, 4) + "..." + asset.accounts[asset.selectedAccount].slice(-3)}</button>
+                                    {#if showDropdown}
+                                        <ul class="account-dropdown-content">
+                                            {#each Object.entries(asset.accounts) as [key, account]}
+                                            <li
+                                            on:click={() => selectAccount(asset, key)}
+                                            tabindex="0"
+                                            >
+                                                {account.slice(0, 6) + "..." + account.slice(-4)}
+                                            </li>
+                                            {/each}
+                                        </ul>
+                                    {/if}
+                            </div>
+                            <h3 class="">{asset.balance.toFixed(2)}</h3>
+                        </div>
+                        
                     {/each}
                 </div>
             </div>
@@ -215,12 +272,43 @@ main {
         color: #666;
     }
 
-    .coin-balance {
+    .account-details {
         font-size: 1.1rem;
         font-weight: bold;
         margin-left: 63%;
+        margin-top: 3%;
         color: #002855;
     }
+
+    .account-dropdown-button {
+        background-color: #E6F0FF;
+        color: #004085;
+        font-weight: bold;
+        border-radius: 3vh;
+        height: 5vh;
+    }
+
+    .account-dropdown-content{
+        position: absolute;
+        background-color: white;
+        border: 0.3vh solid #ddd;
+        border-radius: 2vh;
+        z-index: 1000;
+        list-style: none;
+    }
+
+    .account-dropdown-content li {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 0.9rem;
+        line-height: 2rem;
+        color: #333;
+    }
+
+    .account-dropdown-content li:hover {
+        background-color: #f5f5f5;
+    }
+
 
     .last-transaction-container {
         background: #fefefe;
@@ -296,8 +384,47 @@ main {
             width: 38%;
         }
 
-        
+        .account-dropdown-button {
+            width: 350px;
+        }   
     }
+
+    
+    @media (min-width: 600px) and (max-width: 1800px) {
+        .balance-container {
+            width: 90%;
+            padding: 3%;
+        }
+
+        .assets-container {
+            margin-top: 8%;
+            width: 88%;
+        }
+
+        .account-details {
+            margin-left: 52%;
+        }
+
+        .last-transaction-container {
+            margin-top: 3%;
+            height: 12vh;
+            width: 87%;
+        }
+
+        .account-dropdown-button {
+            width: 130px;
+        }
+
+        .account-dropdown-content {
+            margin-top: -5%;
+        }
+
+        .account-dropdown-content li {
+            text-align: left;
+            margin-left: -14%;   
+        }
+    }
+  
 
     @media (max-width: 600px) {
         .balance-container {
@@ -310,7 +437,7 @@ main {
             width: 88%;
         }
 
-        .coin-balance {
+        .account-details {
             margin-left: 52%;
         }
 
@@ -318,6 +445,20 @@ main {
             margin-top: 3%;
             height: 16vh;
             width: 90%;
+        }
+
+        .account-dropdown-button {
+            width: 115px;
+        }
+
+        .account-dropdown-content {
+            margin-left: -3%;
+            margin-top: -5%;
+        }
+
+        .account-dropdown-content li {
+            text-align: left;
+            margin-left: -15%;   
         }
     }
   
