@@ -17,6 +17,11 @@ type App struct {
 	walletDB *hdwallet.WalletStorage
 }
 
+type Asset struct {
+	Balance  float64        `json:"balance"`
+	Accounts map[int]string `json:"accounts"`
+}
+
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
@@ -98,18 +103,30 @@ func (a *App) RecoverWallet(tokens []string, password string) error {
 	return nil
 }
 
-func (a *App) GetAssets(tokenSymbols []string) (map[string]float64, error) {
-	var assets = make(map[string]float64)
-	for _, token := range tokenSymbols {
-		balance, err := a.wallet.GetBalance(token)
+func (a *App) GetAssets(tokens map[string]int) (map[string]Asset, error) {
+	var assets = make(map[string]Asset)
+	for token, index := range tokens {
+
+		balance, err := a.wallet.GetBalance(token, index)
 		if err != nil {
 			return nil, fmt.Errorf("error getting balance for token %s: %v", token, err)
 		}
 
-		assets[token] = balance
+		accounts, err := a.wallet.GetAllAccounts(token)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving accounts for token %s: %v", token, err)
+		}
+
+		assets[token] = Asset{
+			Balance:  balance,
+			Accounts: accounts,
+		}
+
 	}
+
 	return assets, nil
 }
+
 func (a *App) ValidateAddress(address, token string) bool {
 	return utils.ValidateAddress(address, token)
 }

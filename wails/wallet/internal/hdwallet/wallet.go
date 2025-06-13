@@ -26,6 +26,7 @@ type masterAccount interface {
 	RetrieveBalance(accountIndex int) (string, error)
 	EstimateGas(from, value string, accountIndex int) (string, error)
 	SendTransaction(to, value string, privateKey *bip32.Key, accountIndex int) (string, error)
+	GetAllAccounts() (map[int]string, error)
 }
 
 type masterAccountFactory func(ctx context.Context, masterKey *bip32.Key, db *sql.DB) (masterAccount, error)
@@ -159,13 +160,41 @@ func createETHAccount(ctx context.Context, masterKey *bip32.Key, db *sql.DB) (ma
 	return ethAccount, nil
 }
 
-func (w *Wallet) GetBalance(token string) (float64, error) {
+func (w *Wallet) GetAccountAddress(token string, accountIndex int) (string, error) {
+	masterAccount, ok := w.Accounts[token]
+	if !ok {
+		return "", fmt.Errorf("token not found: %s", token)
+	}
+
+	address, err := masterAccount.GetAddress(accountIndex)
+	if err != nil {
+		return "", fmt.Errorf("error getting %s account address for index %d : %v", token, accountIndex, err)
+	}
+
+	return address, nil
+}
+
+func (w *Wallet) GetAllAccounts(token string) (map[int]string, error) {
+	masterAccount, ok := w.Accounts[token]
+	if !ok {
+		return nil, fmt.Errorf("token not found: %s", token)
+	}
+
+	accounts, err := masterAccount.GetAllAccounts()
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving accounts for token: %s : %v", token, err)
+	}
+
+	return accounts, nil
+}
+
+func (w *Wallet) GetBalance(token string, accountIndex int) (float64, error) {
 	masterAccount, ok := w.Accounts[token]
 	if !ok {
 		return 0, fmt.Errorf("token not found: %s", token)
 	}
 
-	hexBalance, err := masterAccount.RetrieveBalance(0)
+	hexBalance, err := masterAccount.RetrieveBalance(accountIndex)
 	if err != nil {
 		return 0, fmt.Errorf("error retrieving balance: %v", err)
 	}
