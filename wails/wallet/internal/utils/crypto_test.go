@@ -80,7 +80,7 @@ func TestChildKeyGeneration(t *testing.T) {
 	seed := bip39.NewSeed(mnemonic, "")
 	masterKey, err := bip32.NewMasterKey(seed)
 	if err != nil {
-		t.Errorf("Error generating master key: %v", err)
+		t.Fatalf("Error generating master key: %v", err)
 	}
 
 	cases := []struct {
@@ -162,11 +162,10 @@ func TestAddressValidation(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			bool := ValidateAddress(tc.address, tc.token)
-			assertCorrectValue(t, bool, tc.isValid)
+			ok := ValidateAddress(tc.address, tc.token)
+			assertCorrectValue(t, ok, tc.isValid)
 		})
 	}
-
 }
 
 func TestAccountKeyDerivation(t *testing.T) {
@@ -223,7 +222,6 @@ func TestAccountKeyDerivation(t *testing.T) {
 			assertCorrectValue(t, crypto.PubkeyToAddress(coinPrivateKey.PublicKey).Hex(), tc.expectedAddress)
 		})
 	}
-
 }
 
 func assertCorrectValue[T any](t testing.TB, got, want T) {

@@ -97,7 +97,12 @@ func (c *ethClient) NetListening(ctx context.Context) bool {
 		return false
 	}
 
-	return response["result"].(bool)
+	isListening, ok := response["result"].(bool)
+	if !ok {
+		return false
+	}
+
+	return isListening
 }
 
 func (c *ethClient) GetGasPrice(ctx context.Context) (*big.Int, error) {
@@ -112,7 +117,11 @@ func (c *ethClient) GetGasPrice(ctx context.Context) (*big.Int, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get gas price: %w", err)
 	}
-	gasPriceHex := response["result"].(string)
+	gasPriceHex, ok := response["result"].(string)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type: expected string")
+	}
+
 	gasPrice, _ := new(big.Int).SetString(gasPriceHex[2:], 16)
 	return gasPrice, nil
 }
@@ -129,7 +138,11 @@ func (c *ethClient) GetNonce(ctx context.Context, address string) (uint64, error
 	if err != nil {
 		return 0, fmt.Errorf("failed to get nonce: %w", err)
 	}
-	nonceHex := response["result"].(string)
+	nonceHex, ok := response["result"].(string)
+	if !ok {
+		return 0, fmt.Errorf("unexpected result type: expected string")
+	}
+
 	nonce := new(big.Int)
 	nonce.SetString(nonceHex[2:], 16)
 	return nonce.Uint64(), nil
@@ -154,13 +167,17 @@ func (c *ethClient) EstimateGas(ctx context.Context, from string, to string, val
 	if err != nil {
 		return 0, fmt.Errorf("failed to estimate gas: %w", err)
 	}
-	gasLimitHex := response["result"].(string)
+	gasLimitHex, ok := response["result"].(string)
+	if !ok {
+		return 0, fmt.Errorf("unexpected result type: expected string")
+	}
+
 	gasLimit := new(big.Int)
 	gasLimit.SetString(gasLimitHex[2:], 16)
 	return gasLimit.Uint64(), nil
 }
 
-func (c *ethClient) GetChainId(ctx context.Context) (int64, error) {
+func (c *ethClient) GetChainID(ctx context.Context) (int64, error) {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
 		Method:  "eth_chainId",
@@ -173,13 +190,22 @@ func (c *ethClient) GetChainId(ctx context.Context) (int64, error) {
 		return -1, fmt.Errorf("failed to get chain ID: %w", err)
 	}
 
-	chainIdHex := response["result"].(string)
+	chainIDHex, ok := response["result"].(string)
+	if !ok {
+		return 0, fmt.Errorf("unexpected result type: expected string")
+	}
+
 	// Convert hex to int64
-	chainId, _ := new(big.Int).SetString(chainIdHex[2:], 16)
-	return chainId.Int64(), nil
+	chainID, _ := new(big.Int).SetString(chainIDHex[2:], 16)
+	return chainID.Int64(), nil
 }
 
-func (c *ethClient) ProcessTransaction(ctx context.Context, from string, to string, value *big.Int, privateKey *ecdsa.PrivateKey) (string, error) {
+func (c *ethClient) ProcessTransaction(
+	ctx context.Context,
+	from,
+	to string,
+	value *big.Int,
+	privateKey *ecdsa.PrivateKey) (string, error) {
 	toAddress := common.HexToAddress(to)
 	nonce, err := c.GetNonce(ctx, from)
 	if err != nil {
@@ -196,7 +222,7 @@ func (c *ethClient) ProcessTransaction(ctx context.Context, from string, to stri
 		return "", fmt.Errorf("failed to estimate gas: %w", err)
 	}
 
-	chainID, err := c.GetChainId(ctx)
+	chainID, err := c.GetChainID(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to retrieve chain ID: %w", err)
 	}
@@ -225,11 +251,20 @@ func (c *ethClient) ProcessTransaction(ctx context.Context, from string, to stri
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
-	txHash := response["result"].(string)
+	txHash, ok := response["result"].(string)
+	if !ok {
+		return "", fmt.Errorf("unexpected result type: expected string")
+	}
+
 	return txHash, nil
 }
 
-func (c *ethClient) ProcessTransactionWithNativeSigning(ctx context.Context, from string, to string, value *big.Int, privateKey *ecdsa.PrivateKey) (string, error) {
+func (c *ethClient) ProcessTransactionWithNativeSigning(
+	ctx context.Context,
+	from,
+	to string,
+	value *big.Int,
+	privateKey *ecdsa.PrivateKey) (string, error) {
 	toAddress := common.HexToAddress(to)
 	nonce, err := c.GetNonce(ctx, from)
 	if err != nil {
@@ -246,7 +281,7 @@ func (c *ethClient) ProcessTransactionWithNativeSigning(ctx context.Context, fro
 		return "", fmt.Errorf("failed to estimate gas: %w", err)
 	}
 
-	chainID, err := c.GetChainId(ctx)
+	chainID, err := c.GetChainID(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to retrieve chain ID: %w", err)
 	}
@@ -275,7 +310,11 @@ func (c *ethClient) ProcessTransactionWithNativeSigning(ctx context.Context, fro
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
-	txHash := response["result"].(string)
+	txHash, ok := response["result"].(string)
+	if !ok {
+		return "", fmt.Errorf("unexpected result type: expected string")
+	}
+
 	return txHash, nil
 }
 
@@ -291,7 +330,11 @@ func (c *ethClient) GetBalance(ctx context.Context, address string) (string, err
 	if err != nil {
 		return "", fmt.Errorf("failed to get balance: %w", err)
 	}
-	balanceHex := response["result"].(string)
+	balanceHex, ok := response["result"].(string)
+	if !ok {
+		return "", fmt.Errorf("unexpected result type: expected string")
+	}
+
 	return balanceHex, nil
 }
 

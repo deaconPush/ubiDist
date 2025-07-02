@@ -13,28 +13,28 @@ import (
 )
 
 func createWallet(ctx context.Context, password string) (*hdwallet.Wallet, error) {
-	walletDB, err := hdwallet.NewWalletStorage(":memory:", ctx)
+	walletDB, err := hdwallet.NewWalletStorage(ctx, ":memory:")
 	if err != nil {
-		panic(fmt.Errorf("error initializing wallet storage: %v", err))
+		panic(fmt.Errorf("error initializing wallet storage: %w", err))
 	}
 
 	wallet, _, err := hdwallet.CreateWallet(ctx, password, walletDB)
 	if err != nil {
-		return nil, fmt.Errorf("error creating wallet: %v", err)
+		return nil, fmt.Errorf("error creating wallet: %w", err)
 	}
 
 	return wallet, nil
 }
 
 func RestoreWallet(ctx context.Context, password, mnemonic string) (*hdwallet.Wallet, error) {
-	walletDB, err := hdwallet.NewWalletStorage(":memory:", ctx)
+	walletDB, err := hdwallet.NewWalletStorage(ctx, ":memory:")
 	if err != nil {
-		panic(fmt.Errorf("error initializing wallet storage: %v", err))
+		panic(fmt.Errorf("error initializing wallet storage: %w", err))
 	}
 
 	wallet, err := hdwallet.RestoreWallet(ctx, password, mnemonic, walletDB)
 	if err != nil {
-		return nil, fmt.Errorf("error restoring wallet: %v", err)
+		return nil, fmt.Errorf("error restoring wallet: %w", err)
 	}
 
 	return wallet, nil
@@ -43,7 +43,7 @@ func RestoreWallet(ctx context.Context, password, mnemonic string) (*hdwallet.Wa
 func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
 	balanceFloat, err := wallet.GetBalance(token, 0)
 	if err != nil {
-		return "", fmt.Errorf("error getting account: %v", err)
+		return "", fmt.Errorf("error getting account: %w", err)
 	}
 
 	balanceStr := strconv.FormatFloat(balanceFloat, 'f', 4, 64)
