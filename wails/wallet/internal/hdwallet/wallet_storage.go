@@ -9,7 +9,6 @@ import (
 	"wallet/internal/utils"
 
 	"github.com/tyler-smith/go-bip32"
-	_ "modernc.org/sqlite"
 )
 
 type WalletStorage struct {
@@ -79,14 +78,22 @@ func (ws *WalletStorage) GetTransactions(ctx context.Context) ([]WalletTransacti
 
 	for rows.Next() {
 		var transaction WalletTransaction
-		if err := rows.Scan(&transaction.Sender, &transaction.Recipient, &transaction.Value, &transaction.Status, &transaction.Token, &transaction.CreatedAt); err != nil {
+		err = rows.Scan(
+			&transaction.Sender,
+			&transaction.Recipient,
+			&transaction.Value,
+			&transaction.Status,
+			&transaction.Token,
+			&transaction.CreatedAt)
+		if err != nil {
 			return nil, fmt.Errorf("error parsing db transaction data: %w", err)
 		}
 
 		transactions = append(transactions, transaction)
 	}
 
-	if err := rows.Err(); err != nil {
+	err = rows.Err()
+	if err != nil {
 		return nil, fmt.Errorf("error retrieving transaction rows from db: %w", err)
 	}
 

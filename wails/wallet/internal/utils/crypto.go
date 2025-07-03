@@ -162,7 +162,6 @@ func parseDerivationPath(path string) ([]uint32, error) {
 func ValidateAddress(address, token string) bool {
 	if token == "ETH" {
 		return ValidateETHAddress(address)
-
 	}
 	return false
 }

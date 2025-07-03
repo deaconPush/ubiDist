@@ -83,6 +83,11 @@ func RecoverWallet(ctx context.Context, password string, ws *WalletStorage) (*Wa
 		return nil, fmt.Errorf("error retrieving public key from DB: %w", err)
 	}
 
+	ok := validatePassword(ctx, pubKey, password, ws)
+	if !ok {
+		return nil, fmt.Errorf("password is not valid")
+	}
+
 	wallet := &Wallet{
 		publicKey: pubKey,
 		walletDB:  ws,
@@ -131,6 +136,21 @@ func (w *Wallet) Initialize(tokens []string, password string) error {
 	}
 
 	return nil
+}
+
+func validatePassword(ctx context.Context, publicKey *bip32.Key, password string, ws *WalletStorage) bool {
+	pubKeyData, err := publicKey.Serialize()
+	if err != nil {
+		return false
+	}
+
+	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	pubKeyHex := hex.EncodeToString(pubKeyData)
+	_, err = ws.RetrieveRootKeyFromDB(dbCtx, password, pubKeyHex)
+
+	return err == nil
 }
 
 func (w *Wallet) CreateMasterAccount(ctx context.Context, password, token string, db *sql.DB) (masterAccount, error) {

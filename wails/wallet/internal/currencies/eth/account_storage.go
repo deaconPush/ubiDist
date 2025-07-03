@@ -74,14 +74,16 @@ func (a *AccountStorage) GetAllAccounts(ctx context.Context) (map[int]string, er
 	for rows.Next() {
 		var accountIndex int
 		var address string
-		if err := rows.Scan(&address, &accountIndex); err != nil {
+		err = rows.Scan(&address, &accountIndex)
+		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 
 		accounts[accountIndex] = address
 	}
 
-	if err := rows.Err(); err != nil {
+	err = rows.Err()
+	if err != nil {
 		return nil, fmt.Errorf("error retrieving ethAccounts rows from db: %w", err)
 	}
 

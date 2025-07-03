@@ -1,4 +1,4 @@
-package hdwallet
+package hdwallet_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 	"time"
+	"wallet/internal/hdwallet"
 	"wallet/internal/utils"
 
 	"github.com/tyler-smith/go-bip32"
@@ -14,7 +15,7 @@ import (
 
 func TestWalletStorageOperations(t *testing.T) {
 	ctx := context.Background()
-	ws, err := NewWalletStorage(ctx, ":memory:")
+	ws, err := hdwallet.NewWalletStorage(ctx, ":memory:")
 	if err != nil {
 		t.Fatalf("Failed to create database service: %v", err)
 	}
@@ -30,17 +31,17 @@ func TestWalletStorageOperations(t *testing.T) {
 
 	cases := []struct {
 		name   string
-		testFn func(t *testing.T, storage *WalletStorage)
+		testFn func(t *testing.T, storage *hdwallet.WalletStorage)
 	}{
 		{
 			name: "Valid password retrieves correct root key",
-			testFn: func(t *testing.T, storage *WalletStorage) {
+			testFn: func(t *testing.T, storage *hdwallet.WalletStorage) {
 				assertRootKeyRetrieval(ctx, t, storage, password, pubKeyHex, encryptedMasterKeyHex)
 			},
 		},
 		{
 			name: "Invalid password fails to retrieve root key",
-			testFn: func(t *testing.T, storage *WalletStorage) {
+			testFn: func(t *testing.T, storage *hdwallet.WalletStorage) {
 				assertRootKeyRetrievalError(ctx, t, storage, "wrong_password", pubKeyHex)
 			},
 		},
@@ -84,7 +85,7 @@ func generateWallet(t testing.TB, password string) (string, []byte) {
 	return pubKeyHex, encryptedMasterKeyHex
 }
 
-func assertWalletExistence(ctx context.Context, t testing.TB, storage *WalletStorage, want bool) {
+func assertWalletExistence(ctx context.Context, t testing.TB, storage *hdwallet.WalletStorage, want bool) {
 	t.Helper()
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -114,7 +115,7 @@ func decryptMasterKey(password string, encryptedMasterKeyHex []byte) (*bip32.Key
 func assertRootKeyRetrieval(
 	ctx context.Context,
 	t testing.TB,
-	storage *WalletStorage,
+	storage *hdwallet.WalletStorage,
 	password, pubKeyHex string,
 	encryptedMasterKeyHex []byte,
 ) {
@@ -144,7 +145,7 @@ func assertRootKeyRetrieval(
 func assertRootKeyRetrievalError(
 	ctx context.Context,
 	t testing.TB,
-	storage *WalletStorage,
+	storage *hdwallet.WalletStorage,
 	password,
 	pubKeyHex string) {
 	t.Helper()

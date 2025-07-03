@@ -17,14 +17,14 @@ var providers = map[string]string{
 
 const defaultNetwork = "hardhat"
 
-type ETHMasterAccount struct {
+type MasterAccount struct {
 	tokenName string
-	client    *ethClient
+	client    *Client
 	ctx       context.Context
 	accountDB *AccountStorage
 }
 
-func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, db *sql.DB) (*ETHMasterAccount, error) {
+func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, db *sql.DB) (*MasterAccount, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	accountDB, err := NewAccountStorage(dbCtx, db)
 	defer cancel()
@@ -60,8 +60,8 @@ func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, 
 		}
 	}
 
-	client := NewEthClient(providers[defaultNetwork])
-	return &ETHMasterAccount{
+	client := NewClient(providers[defaultNetwork])
+	return &MasterAccount{
 		tokenName: tokenName,
 		client:    client,
 		ctx:       ctx,
@@ -69,7 +69,7 @@ func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, 
 	}, nil
 }
 
-func (a *ETHMasterAccount) GetAddress(accountIndex int) (string, error) {
+func (a *MasterAccount) GetAddress(accountIndex int) (string, error) {
 	dbCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
 	defer cancel()
 
@@ -81,14 +81,14 @@ func (a *ETHMasterAccount) GetAddress(accountIndex int) (string, error) {
 	return address, nil
 }
 
-func (a *ETHMasterAccount) GetAllAccounts() (map[int]string, error) {
+func (a *MasterAccount) GetAllAccounts() (map[int]string, error) {
 	dbCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
 	defer cancel()
 
 	return a.accountDB.GetAllAccounts(dbCtx)
 }
 
-func (a *ETHMasterAccount) RetrieveBalance(accountIndex int) (string, error) {
+func (a *MasterAccount) RetrieveBalance(accountIndex int) (string, error) {
 	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
 	defer cancel()
 
@@ -105,7 +105,7 @@ func (a *ETHMasterAccount) RetrieveBalance(accountIndex int) (string, error) {
 	return balance, nil
 }
 
-func (a *ETHMasterAccount) EstimateGas(to, value string, accountIndex int) (string, error) {
+func (a *MasterAccount) EstimateGas(to, value string, accountIndex int) (string, error) {
 	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
 	defer cancel()
 	valueWei, err := EtherToWei(value)
@@ -132,7 +132,7 @@ func (a *ETHMasterAccount) EstimateGas(to, value string, accountIndex int) (stri
 	return totalCostEther, nil
 }
 
-func (a *ETHMasterAccount) SendTransaction(to, value string, masterKey *bip32.Key, accountIndex int) (string, error) {
+func (a *MasterAccount) SendTransaction(to, value string, masterKey *bip32.Key, accountIndex int) (string, error) {
 	cliCtx, cancel := context.WithTimeout(a.ctx, 5*time.Second)
 	defer cancel()
 	weiValue, err := EtherToWei(value)
@@ -163,6 +163,6 @@ func (a *ETHMasterAccount) SendTransaction(to, value string, masterKey *bip32.Ke
 	return transactionHash, nil
 }
 
-func (a *ETHMasterAccount) ChangeProvider(provider string) {
+func (a *MasterAccount) ChangeProvider(provider string) {
 	a.client.SetProvider(provider)
 }

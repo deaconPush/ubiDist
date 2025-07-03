@@ -18,7 +18,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type ethClient struct {
+type Client struct {
 	ProviderURL string
 }
 
@@ -41,23 +41,23 @@ type RPCPayload struct {
 	ID      string        `json:"id"`
 }
 
-func NewEthClient(provider string) *ethClient {
-	return &ethClient{
+func NewClient(provider string) *Client {
+	return &Client{
 		ProviderURL: provider,
 	}
 }
 
-func (c *ethClient) SetProvider(provider string) {
+func (c *Client) SetProvider(provider string) {
 	c.ProviderURL = provider
 }
 
-func (c *ethClient) sendRequestToNode(ctx context.Context, payload RPCPayload) (map[string]interface{}, error) {
+func (c *Client) sendRequestToNode(ctx context.Context, payload RPCPayload) (map[string]interface{}, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", c.ProviderURL, bytes.NewBuffer(data))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.ProviderURL, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -84,7 +84,7 @@ func (c *ethClient) sendRequestToNode(ctx context.Context, payload RPCPayload) (
 	return response, nil
 }
 
-func (c *ethClient) NetListening(ctx context.Context) bool {
+func (c *Client) NetListening(ctx context.Context) bool {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
 		Method:  "net_listening",
@@ -105,7 +105,7 @@ func (c *ethClient) NetListening(ctx context.Context) bool {
 	return isListening
 }
 
-func (c *ethClient) GetGasPrice(ctx context.Context) (*big.Int, error) {
+func (c *Client) GetGasPrice(ctx context.Context) (*big.Int, error) {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
 		Method:  "eth_gasPrice",
@@ -126,7 +126,7 @@ func (c *ethClient) GetGasPrice(ctx context.Context) (*big.Int, error) {
 	return gasPrice, nil
 }
 
-func (c *ethClient) GetNonce(ctx context.Context, address string) (uint64, error) {
+func (c *Client) GetNonce(ctx context.Context, address string) (uint64, error) {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
 		Method:  "eth_getTransactionCount",
@@ -148,7 +148,7 @@ func (c *ethClient) GetNonce(ctx context.Context, address string) (uint64, error
 	return nonce.Uint64(), nil
 }
 
-func (c *ethClient) EstimateGas(ctx context.Context, from string, to string, value *big.Int) (uint64, error) {
+func (c *Client) EstimateGas(ctx context.Context, from string, to string, value *big.Int) (uint64, error) {
 	valueHex := fmt.Sprintf("0x%x", value)
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
@@ -177,7 +177,7 @@ func (c *ethClient) EstimateGas(ctx context.Context, from string, to string, val
 	return gasLimit.Uint64(), nil
 }
 
-func (c *ethClient) GetChainID(ctx context.Context) (int64, error) {
+func (c *Client) GetChainID(ctx context.Context) (int64, error) {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
 		Method:  "eth_chainId",
@@ -200,7 +200,7 @@ func (c *ethClient) GetChainID(ctx context.Context) (int64, error) {
 	return chainID.Int64(), nil
 }
 
-func (c *ethClient) ProcessTransaction(
+func (c *Client) ProcessTransaction(
 	ctx context.Context,
 	from,
 	to string,
@@ -259,7 +259,7 @@ func (c *ethClient) ProcessTransaction(
 	return txHash, nil
 }
 
-func (c *ethClient) ProcessTransactionWithNativeSigning(
+func (c *Client) ProcessTransactionWithNativeSigning(
 	ctx context.Context,
 	from,
 	to string,
@@ -318,7 +318,7 @@ func (c *ethClient) ProcessTransactionWithNativeSigning(
 	return txHash, nil
 }
 
-func (c *ethClient) GetBalance(ctx context.Context, address string) (string, error) {
+func (c *Client) GetBalance(ctx context.Context, address string) (string, error) {
 	payload := RPCPayload{
 		Jsonrpc: "2.0",
 		Method:  "eth_getBalance",
