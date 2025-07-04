@@ -13,7 +13,7 @@
     let walletTransactions: Transaction[];
     let lastTransaction: Transaction;
     let lastTransactionDate: string;
-    let showDropdown: Boolean = false;
+    let showDropdown: boolean = false;
     let dropdownRef: HTMLDivElement;
 
     function getLogoPath(symbol: string): string {
@@ -60,7 +60,7 @@
         })
     }
 
-    function listTokenAccounts(asset: Asset): void {
+    function listTokenAccounts(): void {
         showDropdown = true;
     }
 
@@ -115,7 +115,7 @@
             <h4 id="assets-title">Assets</h4>
             <div class="assets-list">
                 <div class="asset">
-                    {#each assetsArray as asset}
+                    {#each assetsArray as asset, index (index)}
                         <img src={asset.logoPath} alt={asset.symbol} />
                         <div class="coin-description-container">
                             <h6 class="coin-description-symbol">{asset.symbol}</h6>
@@ -123,11 +123,11 @@
                         </div>
                         <div class="account-details">
                             <div class="account-dropdown" bind:this={dropdownRef}>
-                                <button   on:click={() => listTokenAccounts(asset)}
+                                <button   on:click={() => listTokenAccounts()}
                                     class="account-dropdown-button">{asset.accounts[asset.selectedAccount].slice(0, 4) + "..." + asset.accounts[asset.selectedAccount].slice(-3)}</button>
                                     {#if showDropdown}
                                         <ul class="account-dropdown-content">
-                                            {#each Object.entries(asset.accounts) as [key, account]}
+                                            {#each Object.entries(asset.accounts) as [key, account], index (index)}
                                             <li
                                             on:click={() => selectAccount(asset, key)}
                                             tabindex="0"

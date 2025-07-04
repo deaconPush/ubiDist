@@ -4,7 +4,7 @@
 </script>
 
 <div class="progress-container">
-    {#each steps as step, index}
+    {#each steps as step, index (index) }
         <div class="step {index <= currentStep ? 'active' : ''}">
             <div class="circle">{index + 1}</div>
             <p>{step}</p>

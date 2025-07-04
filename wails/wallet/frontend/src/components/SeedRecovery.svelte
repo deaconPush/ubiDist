@@ -67,7 +67,7 @@
 
 <h4>Enter the Secret Recovery Phrase that you were given when you created your wallet.</h4>
 <div class="seed-words-container">
-    {#each Array(seedPhraseBlocks) as _, i}
+    {#each Array(seedPhraseBlocks) as _, i (i)}
         <div class="input-wrapper">
             <input on:input={checkSeedInputs} type="password" class="seed-phrase-block" id={`seed-prhase-block-${i}`} />
             <img 

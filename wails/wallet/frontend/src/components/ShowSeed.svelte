@@ -17,7 +17,7 @@
 </div>
 <div class="seed-words-container">
     <div class="seed-words-container {showSeedPhrase ? "" : "hidden"}">
-        { #each seedPhraseList as word }
+        { #each seedPhraseList as word, index (index) }
             <input readonly type="text" class="seed-phrase-block {showSeedPhrase ?  "": "hidden" }" value={word} />
         { /each }
     </div>

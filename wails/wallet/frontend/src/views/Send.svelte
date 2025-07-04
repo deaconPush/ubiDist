@@ -177,7 +177,7 @@
         <div class="assets-container">
             <h3>Available assets</h3>
             <div class="assets-list">
-                    {#each userAssets as asset}
+                    {#each userAssets as asset, index (index)}
                         {#if asset.balance > 0}
                             <div class="asset" on:click={() => clickCard(asset)}>
                                 <img src={asset.logoPath} alt={asset.symbol} />

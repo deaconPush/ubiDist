@@ -58,7 +58,7 @@
 </div>
 <div class="seed-words-container">
     <div class="seed-words-container">
-        { #each seedPhraseList as word, index }
+        { #each seedPhraseList as word, index (index) }
             <input type="text" on:input={checkSeedInputs} class="seed-phrase-block" value={blocksIndexToConfirm.includes(index) ? '' : word} readonly={!blocksIndexToConfirm.includes(index) || null} />
         { /each }
     </div>
