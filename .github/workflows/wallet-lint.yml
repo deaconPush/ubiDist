@@ -1,0 +1,59 @@
+name: Lint & Security Checks
+
+on:
+  workflow_dispatch:  # Manual trigger from GitHub UI
+
+jobs:
+  lint-and-vuln:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.10'
+
+      ################################
+      # golangci-lint
+      ################################
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+            | sh -s -- -b $(go env GOPATH)/bin v1.59.0
+
+      - name: Run golangci-lint and save output
+        working-directory: ./wails/wallet
+        run: |
+          golangci-lint run ./... --out-format=colored-line-number > golangci-lint-report.txt || true
+
+      - name: Upload golangci-lint report
+        uses: actions/upload-artifact@v4
+        with:
+          name: golangci-lint-report
+          path: ./wails/wallet/golangci-lint-report.txt
+
+      ################################
+      # govulncheck
+      ################################
+      - name: Install govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Run govulncheck and save output
+        working-directory: ./wails/wallet
+        run: |
+          govulncheck ./... > govulncheck-report.txt || true
+
+      - name: Upload govulncheck report
+        uses: actions/upload-artifact@v4
+        with:
+          name: govulncheck-report
+          path: ./wails/wallet/govulncheck-report.txt
+

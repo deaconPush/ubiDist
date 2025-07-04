@@ -10,15 +10,15 @@ type AccountStorage struct {
 	db *sql.DB
 }
 
-func NewAccountStorage(db *sql.DB, ctx context.Context) (*AccountStorage, error) {
+func NewAccountStorage(ctx context.Context, db *sql.DB) (*AccountStorage, error) {
 	err := db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("error pinging database: %v", err)
+		return nil, fmt.Errorf("error pinging database: %w", err)
 	}
 
 	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS ethAccounts (address TEXT, accountIndex INTEGER PRIMARY KEY)")
 	if err != nil {
-		return nil, fmt.Errorf("error creating wallets table: %v", err)
+		return nil, fmt.Errorf("error creating wallets table: %w", err)
 	}
 
 	return &AccountStorage{db: db}, nil
@@ -37,7 +37,7 @@ func (a *AccountStorage) AccountsExist(ctx context.Context) (bool, error) {
 func (a *AccountStorage) SaveAccounts(ctx context.Context, accounts []string) error {
 	stmt, err := a.db.PrepareContext(ctx, "INSERT INTO ethAccounts (address, accountIndex) VALUES (?, ?)")
 	if err != nil {
-		return fmt.Errorf("error preparing statement for inserting eth accounts: %v", err)
+		return fmt.Errorf("error preparing statement for inserting eth accounts: %w", err)
 	}
 
 	defer stmt.Close()
@@ -45,7 +45,7 @@ func (a *AccountStorage) SaveAccounts(ctx context.Context, accounts []string) er
 	for i := 0; i < len(accounts); i++ {
 		_, err = stmt.ExecContext(ctx, accounts[i], i)
 		if err != nil {
-			return fmt.Errorf("error inserting eth account %d : %v", i, err)
+			return fmt.Errorf("error inserting eth account %d : %w", i, err)
 		}
 	}
 
@@ -57,7 +57,7 @@ func (a *AccountStorage) GetAccountAddress(ctx context.Context, accountIndex int
 	err := a.db.QueryRowContext(ctx, "SELECT address FROM ethAccounts where accountIndex =?", accountIndex).Scan(&address)
 
 	if err != nil {
-		return "", fmt.Errorf("error retrieving ETH account %d from DB: %v", accountIndex, err)
+		return "", fmt.Errorf("error retrieving ETH account %d from DB: %w", accountIndex, err)
 	}
 
 	return address, nil
@@ -65,26 +65,27 @@ func (a *AccountStorage) GetAccountAddress(ctx context.Context, accountIndex int
 
 func (a *AccountStorage) GetAllAccounts(ctx context.Context) (map[int]string, error) {
 	rows, err := a.db.QueryContext(ctx, "SELECT address, accountIndex FROM ethAccounts LIMIT 10")
-	Accounts := make(map[int]string)
+	accounts := make(map[int]string)
 	if err != nil {
-		return nil, fmt.Errorf("error querying ethAccounts: %v", err)
+		return nil, fmt.Errorf("error querying ethAccounts: %w", err)
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		var accountIndex int
 		var address string
-		if err := rows.Scan(&address, &accountIndex); err != nil {
-			return nil, fmt.Errorf("error scanning row: %v", err)
+		err = rows.Scan(&address, &accountIndex)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 
-		Accounts[accountIndex] = address
+		accounts[accountIndex] = address
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error retrieving ethAccounts rows from db: %v", err)
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving ethAccounts rows from db: %w", err)
 	}
 
-	return Accounts, nil
-
+	return accounts, nil
 }

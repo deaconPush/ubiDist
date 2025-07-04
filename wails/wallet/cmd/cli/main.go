@@ -13,28 +13,28 @@ import (
 )
 
 func createWallet(ctx context.Context, password string) (*hdwallet.Wallet, error) {
-	walletDB, err := hdwallet.NewWalletStorage(":memory:", ctx)
+	walletDB, err := hdwallet.NewWalletStorage(ctx, ":memory:")
 	if err != nil {
-		panic(fmt.Errorf("error initializing wallet storage: %v", err))
+		panic(fmt.Errorf("error initializing wallet storage: %w", err))
 	}
 
 	wallet, _, err := hdwallet.CreateWallet(ctx, password, walletDB)
 	if err != nil {
-		return nil, fmt.Errorf("error creating wallet: %v", err)
+		return nil, fmt.Errorf("error creating wallet: %w", err)
 	}
 
 	return wallet, nil
 }
 
 func RestoreWallet(ctx context.Context, password, mnemonic string) (*hdwallet.Wallet, error) {
-	walletDB, err := hdwallet.NewWalletStorage(":memory:", ctx)
+	walletDB, err := hdwallet.NewWalletStorage(ctx, ":memory:")
 	if err != nil {
-		panic(fmt.Errorf("error initializing wallet storage: %v", err))
+		panic(fmt.Errorf("error initializing wallet storage: %w", err))
 	}
 
 	wallet, err := hdwallet.RestoreWallet(ctx, password, mnemonic, walletDB)
 	if err != nil {
-		return nil, fmt.Errorf("error restoring wallet: %v", err)
+		return nil, fmt.Errorf("error restoring wallet: %w", err)
 	}
 
 	return wallet, nil
@@ -43,7 +43,7 @@ func RestoreWallet(ctx context.Context, password, mnemonic string) (*hdwallet.Wa
 func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
 	balanceFloat, err := wallet.GetBalance(token, 0)
 	if err != nil {
-		return "", fmt.Errorf("error getting account: %v", err)
+		return "", fmt.Errorf("error getting account: %w", err)
 	}
 
 	balanceStr := strconv.FormatFloat(balanceFloat, 'f', 4, 64)
@@ -51,90 +51,116 @@ func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
 	return balanceStr, nil
 }
 
+func createWalletCmd(scanner *bufio.Scanner, tokens []string) (*hdwallet.Wallet, error) {
+	fmt.Fprintln(os.Stdout, "Enter password: ")
+	if !scanner.Scan() {
+		return nil, fmt.Errorf("failed to read password input")
+	}
+	password := strings.TrimSpace(scanner.Text())
+
+	wallet, err := createWallet(context.Background(), password)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error creating wallet:", err)
+		return nil, err
+	}
+
+	err = wallet.Initialize(tokens, password)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error initializing wallet:", err)
+		return nil, err
+	}
+
+	fmt.Fprintln(os.Stdout, "Wallet created successfully.")
+	return wallet, nil
+}
+
+func restoreWalletCmd(scanner *bufio.Scanner, tokens []string) (*hdwallet.Wallet, error) {
+	fmt.Fprintln(os.Stdout, "Enter password: ")
+	if !scanner.Scan() {
+		return nil, fmt.Errorf("failed to read password")
+	}
+	password := strings.TrimSpace(scanner.Text())
+
+	fmt.Fprintln(os.Stdout, "Enter mnemonic: ")
+	if !scanner.Scan() {
+		return nil, fmt.Errorf("failed to read mnemonic")
+	}
+	mnemonic := strings.TrimSpace(scanner.Text())
+
+	fmt.Fprintln(os.Stdout, mnemonic)
+
+	wallet, err := RestoreWallet(context.Background(), password, mnemonic)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error restoring wallet:", err)
+		return nil, err
+	}
+
+	err = wallet.Initialize(tokens, password)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error initializing wallet:", err)
+		return nil, err
+	}
+
+	fmt.Fprintln(os.Stdout, "Wallet restored successfully")
+	return wallet, nil
+}
+
+func checkBalanceCmd(ctx context.Context, scanner *bufio.Scanner, wallet *hdwallet.Wallet, client *eth.Client) error {
+	if wallet == nil {
+		fmt.Fprintln(os.Stderr, "Wallet not found")
+		return fmt.Errorf("wallet not initialized")
+	}
+
+	if !client.NetListening(ctx) {
+		fmt.Fprintln(os.Stderr, "Node is not listening")
+		return fmt.Errorf("node not listening")
+	}
+
+	fmt.Fprintln(os.Stdout, "Enter token name: ")
+	if !scanner.Scan() {
+		return fmt.Errorf("failed to read token input")
+	}
+	token := strings.TrimSpace(scanner.Text())
+
+	balance, err := GetBalance(wallet, token)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to get balance:", err)
+		return err
+	}
+
+	fmt.Fprintf(os.Stdout, "Balance for %s token: %s\n", token, balance)
+	return nil
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	tokens := []string{"ETH"}
-	var wallet *hdwallet.Wallet = nil
+	var wallet *hdwallet.Wallet
+	var err error
 	cliCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	client := eth.NewEthClient("http://localhost:8545")
+	client := eth.NewClient("http://localhost:8545")
 	defer cancel()
 
 	for {
-		fmt.Println("Enter a command or (type 'exit' to quit):")
+		fmt.Fprintln(os.Stdout, "Enter a command or (type 'exit' to quit):")
 		scanner.Scan()
 		command := scanner.Text()
-
 		switch command {
 		case "create-wallet":
-			fmt.Println("Enter password: ")
-			scanner.Scan()
-			password := strings.TrimSpace(scanner.Text())
-			var err error
-			wallet, err = createWallet(context.Background(), password)
+			wallet, err = createWalletCmd(scanner, tokens)
 			if err != nil {
-				fmt.Println("Error creating wallet:", err)
 				break
 			}
-
-			err = wallet.Initialize(tokens, password)
-			if err != nil {
-				fmt.Println("Error initializing wallet:", err)
-				break
-			}
-
-			fmt.Println("Wallet created successfully")
-
 		case "restore-wallet":
-			fmt.Println("Enter password: ")
-			scanner.Scan()
-			password := strings.TrimSpace(scanner.Text())
-			fmt.Println("Enter mnemonic: ")
-			scanner.Scan()
-			mnemonic := strings.TrimSpace(scanner.Text())
-			fmt.Println("mnemonic: ", mnemonic)
-			var err error
-			wallet, err = RestoreWallet(context.Background(), password, mnemonic)
+			wallet, err = restoreWalletCmd(scanner, tokens)
 			if err != nil {
-				fmt.Println("Error restoring wallet:", err)
 				break
 			}
-
-			err = wallet.Initialize(tokens, password)
-			if err != nil {
-				fmt.Println("Error initializing wallet:", err)
-				break
-			}
-
-			fmt.Println("Wallet restored successfully")
-
 		case "get-token-balance":
-			if wallet == nil {
-				fmt.Println("Wallet not found")
-				break
-			}
-
-			if !client.NetListening(cliCtx) {
-				fmt.Println("Node is not listening")
-				break
-			}
-			fmt.Println("Enter token name: ")
-			scanner.Scan()
-			token := strings.TrimSpace(scanner.Text())
-			balance, err := GetBalance(wallet, token)
+			err := checkBalanceCmd(cliCtx, scanner, wallet, client)
 			if err != nil {
-				fmt.Println("Failed to get balance: ", err)
 				break
 			}
-
-			fmt.Printf("Balance for %s token: %s\n", token, balance)
-
-		case "exit":
-			fmt.Println("Exiting...")
-			return
-		}
-		if err := scanner.Err(); err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading input:", err)
-			break
 		}
 	}
 }

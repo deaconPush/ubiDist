@@ -26,12 +26,12 @@ var TokenCoinTypes = map[string]int{
 func GenerateMnemonic() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
-		return "", fmt.Errorf("error generating entropy: %v", err)
+		return "", fmt.Errorf("error generating entropy: %w", err)
 	}
 
 	mnemonic, err := bip39.NewMnemonic(entropy)
 	if err != nil {
-		return "", fmt.Errorf("error generating mnemonic: %v", err)
+		return "", fmt.Errorf("error generating mnemonic: %w", err)
 	}
 	return mnemonic, nil
 }
@@ -39,22 +39,22 @@ func GenerateMnemonic() (string, error) {
 func Encrypt(key, data []byte) ([]byte, error) {
 	key, salt, err := deriveKey(key, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error deriving key: %v", err)
+		return nil, fmt.Errorf("error deriving key: %w", err)
 	}
 
 	blockCipher, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("error creating cipher: %v", err)
+		return nil, fmt.Errorf("error creating cipher: %w", err)
 	}
 
 	gcm, err := cipher.NewGCM(blockCipher)
 	if err != nil {
-		return nil, fmt.Errorf("error creating GCM: %v", err)
+		return nil, fmt.Errorf("error creating GCM: %w", err)
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = rand.Read(nonce); err != nil {
-		return nil, fmt.Errorf("error creating nonce: %v", err)
+		return nil, fmt.Errorf("error creating nonce: %w", err)
 	}
 
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
@@ -68,23 +68,23 @@ func Decrypt(key, data []byte) ([]byte, error) {
 
 	key, _, err := deriveKey(key, salt)
 	if err != nil {
-		return nil, fmt.Errorf("error deriving key: %v", err)
+		return nil, fmt.Errorf("error deriving key: %w", err)
 	}
 
 	blockCipher, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("error creating cipher: %v", err)
+		return nil, fmt.Errorf("error creating cipher: %w", err)
 	}
 
 	gcm, err := cipher.NewGCM(blockCipher)
 	if err != nil {
-		return nil, fmt.Errorf("error creating GCM: %v", err)
+		return nil, fmt.Errorf("error creating GCM: %w", err)
 	}
 
 	nonce, ciphertext := data[:gcm.NonceSize()], data[gcm.NonceSize():]
 	plainText, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error decrypting data: %v", err)
+		return nil, fmt.Errorf("error decrypting data: %w", err)
 	}
 
 	return plainText, nil
@@ -94,13 +94,13 @@ func deriveKey(password, salt []byte) ([]byte, []byte, error) {
 	if salt == nil {
 		salt = make([]byte, 32)
 		if _, err := rand.Read(salt); err != nil {
-			return nil, nil, fmt.Errorf("error creating salt: %v", err)
+			return nil, nil, fmt.Errorf("error creating salt: %w", err)
 		}
 	}
 
 	key, err := scrypt.Key(password, salt, 16384, 8, 1, 32)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error deriving key: %v", err)
+		return nil, nil, fmt.Errorf("error deriving key: %w", err)
 	}
 
 	return key, salt, nil
@@ -119,13 +119,13 @@ func DeriveKeyForAccount(masterKey *bip32.Key, token string, accountIndex int) (
 func deriveChildKey(masterKey *bip32.Key, path string) (*bip32.Key, error) {
 	indices, err := parseDerivationPath(path)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing derivation path: %v", err)
+		return nil, fmt.Errorf("error parsing derivation path: %w", err)
 	}
 	key := masterKey
 	for _, index := range indices {
 		key, err = key.NewChildKey(index)
 		if err != nil {
-			return nil, fmt.Errorf("error deriving child key: %v", err)
+			return nil, fmt.Errorf("error deriving child key: %w", err)
 		}
 	}
 	return key, nil
@@ -146,7 +146,7 @@ func parseDerivationPath(path string) ([]uint32, error) {
 
 		parsedIndex, err := strconv.ParseUint(part, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing derivation path: %v", err)
+			return nil, fmt.Errorf("error parsing derivation path: %w", err)
 		}
 		index := uint32(parsedIndex)
 
@@ -162,7 +162,6 @@ func parseDerivationPath(path string) ([]uint32, error) {
 func ValidateAddress(address, token string) bool {
 	if token == "ETH" {
 		return ValidateETHAddress(address)
-
 	}
 	return false
 }
@@ -185,7 +184,6 @@ func ValidateETHAddress(address string) bool {
 func ValidateETHAddressFormat(address string) bool {
 	ethAddressRegex := regexp.MustCompile(`^0[xX][0-9a-fA-F]{40}$`)
 	return ethAddressRegex.MatchString(address)
-
 }
 
 func ValidateETHChecksum(address string) bool {
