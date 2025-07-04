@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"wallet/internal/utils"
 
-	_ "modernc.org/sqlite"
-
 	"github.com/tyler-smith/go-bip32"
 )
 

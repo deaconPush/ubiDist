@@ -7,6 +7,8 @@ import (
 	"wallet/internal/hdwallet"
 	"wallet/internal/utils"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/labstack/gommon/log"
 	"github.com/tyler-smith/go-bip39"
 )
