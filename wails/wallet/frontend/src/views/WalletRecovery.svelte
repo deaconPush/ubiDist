@@ -46,7 +46,7 @@
     }
 
     const password: string = passwordInput.value;
-    RecoverWallet($availableTokens, password)
+    RecoverWallet($availableTokens, password, "http://localhost:8545")
       .then(() => {
         currentView.set('Home');
       })

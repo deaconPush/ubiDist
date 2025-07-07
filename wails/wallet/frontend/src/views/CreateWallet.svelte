@@ -25,7 +25,7 @@
     }
 
     const password: string = passwordInput.value;
-    CreateWallet($availableTokens, password)
+    CreateWallet($availableTokens, password, "http://localhost:8545")
       .then((data) => {
         seedPhraseList = data.split(' ');
         nextStep();

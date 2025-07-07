@@ -24,7 +24,7 @@
     }
 
     const password = passwordInput.value;
-    RestoreWallet($availableTokens, password, seedPhrase)
+    RestoreWallet($availableTokens, password, seedPhrase, "http://localhost:8545")
       .then(() => {
         currentView.set('Home');
       })
