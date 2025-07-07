@@ -24,7 +24,7 @@ type MasterAccount struct {
 	accountDB *AccountStorage
 }
 
-func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, db *sql.DB) (*MasterAccount, error) {
+func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, db *sql.DB, provider string) (*MasterAccount, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	accountDB, err := NewAccountStorage(dbCtx, db)
 	defer cancel()
@@ -60,7 +60,7 @@ func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, 
 		}
 	}
 
-	client := NewClient(providers[defaultNetwork])
+	client := NewClient(provider)
 	return &MasterAccount{
 		tokenName: tokenName,
 		client:    client,

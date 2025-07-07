@@ -29,7 +29,7 @@ type masterAccount interface {
 	GetAllAccounts() (map[int]string, error)
 }
 
-type masterAccountFactory func(ctx context.Context, masterKey *bip32.Key, db *sql.DB) (masterAccount, error)
+type masterAccountFactory func(ctx context.Context, masterKey *bip32.Key, db *sql.DB, provider string) (masterAccount, error)
 
 var masterAccountFactories = map[string]masterAccountFactory{
 	"ETH": createETHAccount,
@@ -125,9 +125,9 @@ func storeMasterKey(ctx context.Context, ws *WalletStorage, password string, mas
 	return nil
 }
 
-func (w *Wallet) Initialize(tokens []string, password string) error {
+func (w *Wallet) Initialize(tokens []string, password string, provider string) error {
 	for _, token := range tokens {
-		account, err := w.CreateMasterAccount(w.ctx, password, token, w.walletDB.db)
+		account, err := w.CreateMasterAccount(w.ctx, password, token, w.walletDB.db, provider)
 		if err != nil {
 			return fmt.Errorf("error creating %s account: %w", token, err)
 		}
@@ -153,7 +153,7 @@ func validatePassword(ctx context.Context, publicKey *bip32.Key, password string
 	return err == nil
 }
 
-func (w *Wallet) CreateMasterAccount(ctx context.Context, password, token string, db *sql.DB) (masterAccount, error) {
+func (w *Wallet) CreateMasterAccount(ctx context.Context, password, token string, db *sql.DB, provider string) (masterAccount, error) {
 	pubKeyData, err := w.publicKey.Serialize()
 	if err != nil {
 		return nil, fmt.Errorf("error serializing master public key: %w", err)
@@ -170,7 +170,7 @@ func (w *Wallet) CreateMasterAccount(ctx context.Context, password, token string
 		return nil, fmt.Errorf("unsupported token type: %s", token)
 	}
 
-	masterAcct, err := factory(ctx, masterKey, db)
+	masterAcct, err := factory(ctx, masterKey, db, provider)
 	if err != nil {
 		return nil, fmt.Errorf("error creating %s account: %w", token, err)
 	}
@@ -178,27 +178,13 @@ func (w *Wallet) CreateMasterAccount(ctx context.Context, password, token string
 	return masterAcct, nil
 }
 
-func createETHAccount(ctx context.Context, masterKey *bip32.Key, db *sql.DB) (masterAccount, error) {
-	ethAccount, err := eth.NewETHAccount(ctx, masterKey, "ETH", db)
+func createETHAccount(ctx context.Context, masterKey *bip32.Key, db *sql.DB, provider string) (masterAccount, error) {
+	ethAccount, err := eth.NewETHAccount(ctx, masterKey, "ETH", db, provider)
 	if err != nil {
 		return nil, fmt.Errorf("error creating ETH account: %w", err)
 	}
 
 	return ethAccount, nil
-}
-
-func (w *Wallet) GetAccountAddress(token string, accountIndex int) (string, error) {
-	masterAcc, ok := w.Accounts[token]
-	if !ok {
-		return "", fmt.Errorf("token not found: %s", token)
-	}
-
-	address, err := masterAcc.GetAddress(accountIndex)
-	if err != nil {
-		return "", fmt.Errorf("error getting %s account address for index %d : %w", token, accountIndex, err)
-	}
-
-	return address, nil
 }
 
 func (w *Wallet) GetAllAccounts(token string) (map[int]string, error) {
