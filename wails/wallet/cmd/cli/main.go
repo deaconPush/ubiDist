@@ -51,7 +51,7 @@ func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
 	return balanceStr, nil
 }
 
-func createWalletCmd(scanner *bufio.Scanner, tokens []string) (*hdwallet.Wallet, error) {
+func createWalletCmd(scanner *bufio.Scanner, tokens []string, provider string) (*hdwallet.Wallet, error) {
 	fmt.Fprintln(os.Stdout, "Enter password: ")
 	if !scanner.Scan() {
 		return nil, fmt.Errorf("failed to read password input")
@@ -64,7 +64,7 @@ func createWalletCmd(scanner *bufio.Scanner, tokens []string) (*hdwallet.Wallet,
 		return nil, err
 	}
 
-	err = wallet.Initialize(tokens, password)
+	err = wallet.Initialize(tokens, password, provider)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error initializing wallet:", err)
 		return nil, err
@@ -74,7 +74,7 @@ func createWalletCmd(scanner *bufio.Scanner, tokens []string) (*hdwallet.Wallet,
 	return wallet, nil
 }
 
-func restoreWalletCmd(scanner *bufio.Scanner, tokens []string) (*hdwallet.Wallet, error) {
+func restoreWalletCmd(scanner *bufio.Scanner, tokens []string, provider string) (*hdwallet.Wallet, error) {
 	fmt.Fprintln(os.Stdout, "Enter password: ")
 	if !scanner.Scan() {
 		return nil, fmt.Errorf("failed to read password")
@@ -95,7 +95,7 @@ func restoreWalletCmd(scanner *bufio.Scanner, tokens []string) (*hdwallet.Wallet
 		return nil, err
 	}
 
-	err = wallet.Initialize(tokens, password)
+	err = wallet.Initialize(tokens, password, provider)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error initializing wallet:", err)
 		return nil, err
@@ -147,12 +147,12 @@ func main() {
 		command := scanner.Text()
 		switch command {
 		case "create-wallet":
-			wallet, err = createWalletCmd(scanner, tokens)
+			wallet, err = createWalletCmd(scanner, tokens, "http://localhost:8545")
 			if err != nil {
 				break
 			}
 		case "restore-wallet":
-			wallet, err = restoreWalletCmd(scanner, tokens)
+			wallet, err = restoreWalletCmd(scanner, tokens, "http://localhost:8545")
 			if err != nil {
 				break
 			}
