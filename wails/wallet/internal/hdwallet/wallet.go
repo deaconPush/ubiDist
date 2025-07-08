@@ -61,7 +61,11 @@ func CreateWallet(ctx context.Context, password string, ws *WalletStorage) (*Wal
 }
 
 func RestoreWallet(ctx context.Context, password string, mnemonic string, ws *WalletStorage) (*Wallet, error) {
-	seed := bip39.NewSeed(mnemonic, "")
+	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
+	if err != nil {
+		return nil, fmt.Errorf("error recovering seed from mnemonic: %w", err)
+	}
+
 	masterKey, err := bip32.NewMasterKey(seed)
 	if err != nil {
 		return nil, fmt.Errorf("error recovering master key from seed: %w", err)

@@ -3,7 +3,6 @@ package hdwallet_test
 import (
 	"context"
 	"encoding/hex"
-	"reflect"
 	"testing"
 	"time"
 	"wallet/internal/hdwallet"
@@ -11,93 +10,81 @@ import (
 
 	_ "modernc.org/sqlite"
 
+	"github.com/stretchr/testify/require"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
 
 func TestWalletStorageOperations(t *testing.T) {
 	ctx := context.Background()
+
 	ws, err := hdwallet.NewWalletStorage(ctx, ":memory:")
-	if err != nil {
-		t.Fatalf("Failed to create database service: %v", err)
-	}
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		ws.Close()
+	})
 
 	assertWalletExistence(ctx, t, ws, false)
-
 	password := "password"
+	wrongPassword := "wrong_password"
 	pubKeyHex, encryptedMasterKeyHex := generateWallet(t, password)
 	err = ws.SaveRootKeyToDB(ctx, pubKeyHex, encryptedMasterKeyHex)
-	if err != nil {
-		t.Fatalf("Failed to save root key to DB: %v", err)
-	}
+	require.NoError(t, err)
 
-	cases := []struct {
-		name   string
-		testFn func(t *testing.T, storage *hdwallet.WalletStorage)
-	}{
-		{
-			name: "Valid password retrieves correct root key",
-			testFn: func(t *testing.T, storage *hdwallet.WalletStorage) {
-				assertRootKeyRetrieval(ctx, t, storage, password, pubKeyHex, encryptedMasterKeyHex)
-			},
-		},
-		{
-			name: "Invalid password fails to retrieve root key",
-			testFn: func(t *testing.T, storage *hdwallet.WalletStorage) {
-				assertRootKeyRetrievalError(ctx, t, storage, "wrong_password", pubKeyHex)
-			},
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			c.testFn(t, ws)
-		})
-	}
-	defer ws.Close()
+	t.Run("Valid password retrieves correct root key", func(t *testing.T) {
+		assertRootKeyRetrieval(ctx, t, ws, password, pubKeyHex, encryptedMasterKeyHex)
+	})
+
+	t.Run("Invalid password fails to retrieve root key", func(t *testing.T) {
+		assertRootKeyRetrievalError(ctx, t, ws, wrongPassword, pubKeyHex)
+	})
+
+	t.Run("Test password validation", func(t *testing.T) {
+		ok, err := ws.ValidatePassword(ctx, pubKeyHex, password)
+		require.NoError(t, err)
+		require.Equal(t, true, ok)
+
+		ok, err = ws.ValidatePassword(ctx, pubKeyHex, wrongPassword)
+		require.Error(t, err)
+		require.Equal(t, false, ok)
+	})
 }
 
 func generateWallet(t testing.TB, password string) (string, []byte) {
+	t.Helper()
 	entropy, err := bip39.NewEntropy(128)
-	if err != nil {
-		t.Fatalf("Failed to generate entropy: %v", err)
-	}
+	require.NoError(t, err)
+
 	mnemonic, err := bip39.NewMnemonic(entropy)
-	if err != nil {
-		t.Fatalf("Failed to generate mnemonic: %v", err)
-	}
+	require.NoError(t, err)
+
 	seed := bip39.NewSeed(mnemonic, "")
 	masterKey, err := bip32.NewMasterKey(seed)
-	if err != nil {
-		t.Fatalf("Failed to create master key: %v", err)
-	}
+	require.NoError(t, err)
+
 	pubKeyData, err := masterKey.PublicKey().Serialize()
-	if err != nil {
-		t.Fatalf("Failed to serialize public key: %v", err)
-	}
+	require.NoError(t, err)
 	pubKeyHex := hex.EncodeToString(pubKeyData)
+
 	masterKeyData, err := masterKey.Serialize()
-	if err != nil {
-		t.Fatalf("Failed to serialize master key: %v", err)
-	}
+	require.NoError(t, err)
 	masterKeyHex := hex.EncodeToString(masterKeyData)
+
 	encryptedMasterKeyHex, err := utils.Encrypt([]byte(password), []byte(masterKeyHex))
-	if err != nil {
-		t.Fatalf("Failed to encrypt master key: %v", err)
-	}
+	require.NoError(t, err)
+
 	return pubKeyHex, encryptedMasterKeyHex
 }
 
 func assertWalletExistence(ctx context.Context, t testing.TB, storage *hdwallet.WalletStorage, want bool) {
 	t.Helper()
+
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
 	got, err := storage.WalletExists(dbCtx)
-	if err != nil {
-		t.Fatalf("Error checking wallet existence: %v", err)
-	}
-	if got != want {
-		t.Errorf("Wallet existence mismatch: expected %v, got %v", want, got)
-	}
+	require.NoError(t, err)
+	require.Equal(t, want, got, "Wallet existence mismatch")
 }
 
 func decryptMasterKey(password string, encryptedMasterKeyHex []byte) (*bip32.Key, error) {
@@ -124,24 +111,15 @@ func assertRootKeyRetrieval(
 	t.Helper()
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
 	retrievedKey, err := storage.RetrieveRootKeyFromDB(dbCtx, password, pubKeyHex)
-	if err != nil {
-		t.Errorf("Failed to retrieve root key: %v", err)
-	}
+	require.NoError(t, err)
+	require.NotNil(t, retrievedKey)
 
-	if retrievedKey == nil {
-		t.Errorf("Expected a valid key, but got nil")
-	}
-
-	// Decrypt and compare with the original master key
 	masterKey, err := decryptMasterKey(password, encryptedMasterKeyHex)
-	if err != nil {
-		t.Errorf("Failed to decrypt master key: %v", err)
-	}
+	require.NoError(t, err)
 
-	if !reflect.DeepEqual(retrievedKey, masterKey) {
-		t.Errorf("Retrieved key does not match the original")
-	}
+	require.Equal(t, masterKey.String(), retrievedKey.String(), "Retrieved key does not match original")
 }
 
 func assertRootKeyRetrievalError(
@@ -153,8 +131,8 @@ func assertRootKeyRetrievalError(
 	t.Helper()
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
 	retrievedKey, err := storage.RetrieveRootKeyFromDB(dbCtx, password, pubKeyHex)
-	if err == nil {
-		t.Fatalf("Expected an error, but got a valid key: %v", retrievedKey)
-	}
+	require.Error(t, err)
+	require.Nil(t, retrievedKey)
 }

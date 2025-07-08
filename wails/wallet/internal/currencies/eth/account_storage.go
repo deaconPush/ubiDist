@@ -64,7 +64,7 @@ func (a *AccountStorage) GetAccountAddress(ctx context.Context, accountIndex int
 }
 
 func (a *AccountStorage) GetAllAccounts(ctx context.Context) (map[int]string, error) {
-	rows, err := a.db.QueryContext(ctx, "SELECT address, accountIndex FROM ethAccounts LIMIT 10")
+	rows, err := a.db.QueryContext(ctx, "SELECT address, accountIndex FROM ethAccounts LIMIT 11")
 	accounts := make(map[int]string)
 	if err != nil {
 		return nil, fmt.Errorf("error querying ethAccounts: %w", err)

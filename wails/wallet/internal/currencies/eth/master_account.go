@@ -41,7 +41,7 @@ func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, 
 	if !accountsExist {
 		var ethAccounts []string
 
-		for i := 0; i < 21; i++ {
+		for i := 0; i < 11; i++ {
 			ethKey, err := utils.DeriveKeyForAccount(masterKey, "ETH", i)
 			if err != nil {
 				return nil, fmt.Errorf("error deriving %s account %d: %w", tokenName, i, err)
@@ -99,7 +99,7 @@ func (a *MasterAccount) RetrieveBalance(accountIndex int) (string, error) {
 
 	balance, err := a.client.GetBalance(cliCtx, address)
 	if err != nil {
-		return "", fmt.Errorf("error retrieving balance: %w", err)
+		return "", fmt.Errorf("client error retrieving balance: %w", err)
 	}
 
 	return balance, nil
