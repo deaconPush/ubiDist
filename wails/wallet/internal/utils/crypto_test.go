@@ -15,7 +15,6 @@ func TestEncryption(t *testing.T) {
 	t.Run("Encrypt and decrypt with valid password and data", func(t *testing.T) {
 		password := "password"
 		plain := []byte("data")
-
 		ciphertext, err := utils.Encrypt([]byte(password), plain)
 		require.NoError(t, err)
 
@@ -28,7 +27,6 @@ func TestEncryption(t *testing.T) {
 		password := "password"
 		invalidPassword := "invalid"
 		plain := []byte("data")
-
 		ciphertext, err := utils.Encrypt([]byte(password), plain)
 		require.NoError(t, err)
 
@@ -107,7 +105,6 @@ func TestAddressValidation(t *testing.T) {
 func TestAccountKeyDerivation(t *testing.T) {
 	mnemonic := "test test test test test test test test test test test junk"
 	seed := bip39.NewSeed(mnemonic, "")
-
 	masterKey, err := bip32.NewMasterKey(seed)
 	require.NoError(t, err)
 
