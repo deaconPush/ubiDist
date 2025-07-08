@@ -17,7 +17,8 @@ import (
 
 func TestWalletStorageOperations(t *testing.T) {
 	ctx := context.Background()
-
+	password := "password"
+	wrongPassword := "wrong_password"
 	ws, err := hdwallet.NewWalletStorage(ctx, ":memory:")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -25,11 +26,26 @@ func TestWalletStorageOperations(t *testing.T) {
 	})
 
 	assertWalletExistence(ctx, t, ws, false)
-	password := "password"
-	wrongPassword := "wrong_password"
+	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	_, err = ws.RetrievePublicKeyFromDB(dbCtx)
+	require.Error(t, err)
+
 	pubKeyHex, encryptedMasterKeyHex := generateWallet(t, password)
+	_, err = ws.RetrieveRootKeyFromDB(dbCtx, password, pubKeyHex)
+	require.Error(t, err)
+
 	err = ws.SaveRootKeyToDB(ctx, pubKeyHex, encryptedMasterKeyHex)
 	require.NoError(t, err)
+
+	t.Run("Get all transactions shouldn't return data", func(t *testing.T) {
+		dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		transactions, err := ws.GetTransactions(dbCtx)
+		require.NoError(t, err)
+		require.Empty(t, transactions)
+	})
 
 	t.Run("Valid password retrieves correct root key", func(t *testing.T) {
 		assertRootKeyRetrieval(ctx, t, ws, password, pubKeyHex, encryptedMasterKeyHex)
