@@ -43,7 +43,10 @@ func TestHDWallet(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		ws.Close()
-		hardhatC.Terminate(ctx)
+		err = hardhatC.Terminate(ctx)
+		if err != nil {
+			t.Fatalf("error terminating hardhat container")
+		}
 	})
 	t.Run("Test wallet restore and operations", func(t *testing.T) {
 		to := "0x976EA74026E726554dB657fA54763abd0C3a0aa9"
@@ -81,14 +84,15 @@ func TestHDWallet(t *testing.T) {
 		}
 		// validate last transaction
 		transactions, err := wallet.GetTransactions()
+		require.NoError(t, err)
 		latestTransaction := transactions[0]
 		require.Equal(t, to, latestTransaction.Recipient)
 		require.Equal(t, transferAmount, latestTransaction.Value)
 	})
 
 	t.Run("Test wallet recovery and operations", func(t *testing.T) {
-		var firstAcctPreviousBalance float64 = 9469.999961
-		var sixthAcctPreviousBalance float64 = 10530
+		var firstAcctPreviousBalance = 9469.999961
+		var sixthAcctPreviousBalance = 10530
 		tokens := []string{"ETH"}
 		operationsToken := "ETH"
 		firstAccountIndex := 0
@@ -110,6 +114,7 @@ func TestHDWallet(t *testing.T) {
 	t.Run("Test wallet restore with invalid mnemonic", func(t *testing.T) {
 		mnemonic := "apple banana giraffe moon tiger salad potato elephant monkey window ocean"
 		newWs, err := hdwallet.NewWalletStorage(ctx, ":memory:")
+		require.NoError(t, err)
 		_, err = hdwallet.RestoreWallet(ctx, defaultPassword, mnemonic, newWs)
 		require.Error(t, err)
 		newWs.Close()
@@ -124,6 +129,7 @@ func TestHDWallet(t *testing.T) {
 		tokens := []string{"ETH"}
 		unsupportedTokens := []string{"BCH"}
 		newWs, err := hdwallet.NewWalletStorage(ctx, ":memory:")
+		require.NoError(t, err)
 		wallet, err := hdwallet.RestoreWallet(ctx, defaultPassword, defaultMnemonic, newWs)
 		require.NoError(t, err)
 		// Initialize wallet with unsupported token
@@ -209,6 +215,7 @@ func TestHDWallet(t *testing.T) {
 		firstAccountIndex := 0
 		expectedBalance := float64(0)
 		newWs, err := hdwallet.NewWalletStorage(ctx, ":memory:")
+		require.NoError(t, err)
 		wallet, mnemonic, err := hdwallet.CreateWallet(ctx, defaultPassword, newWs)
 		require.NotEmpty(t, mnemonic)
 		require.NoError(t, err)

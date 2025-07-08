@@ -133,7 +133,7 @@ func (c *Client) GetGasPrice(ctx context.Context) (*big.Int, error) {
 	}
 
 	if response.Error != nil {
-		return nil, fmt.Errorf("RPC error: %d - %s\n", response.Error.Code, response.Error.Message)
+		return nil, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
 	var gasPriceHex string
@@ -161,14 +161,13 @@ func (c *Client) GetNonce(ctx context.Context, address string) (uint64, error) {
 	}
 
 	if response.Error != nil {
-		return 0, fmt.Errorf("RPC error: %d - %s\n", response.Error.Code, response.Error.Message)
+		return 0, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
 	var nonceHex string
 	err = json.Unmarshal(response.Result, &nonceHex)
 	if err != nil {
 		return 0, fmt.Errorf("error unmarshaling nonce value from response")
-
 	}
 
 	nonce := new(big.Int)
@@ -197,14 +196,13 @@ func (c *Client) EstimateGas(ctx context.Context, from string, to string, value 
 	}
 
 	if response.Error != nil {
-		return 0, fmt.Errorf("RPC error: %d - %s\n", response.Error.Code, response.Error.Message)
+		return 0, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
 	var gasLimitHex string
 	err = json.Unmarshal(response.Result, &gasLimitHex)
 	if err != nil {
 		return 0, fmt.Errorf("error unmarshaling gasLimit value from response")
-
 	}
 
 	gasLimit := new(big.Int)
@@ -226,14 +224,13 @@ func (c *Client) GetChainID(ctx context.Context) (int64, error) {
 	}
 
 	if response.Error != nil {
-		return 0, fmt.Errorf("RPC error: %d - %s\n", response.Error.Code, response.Error.Message)
+		return 0, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
 	var chainIDHex string
 	err = json.Unmarshal(response.Result, &chainIDHex)
 	if err != nil {
 		return 0, fmt.Errorf("error unmarshaling chainID value from response")
-
 	}
 	// Convert hex to int64
 	chainID, _ := new(big.Int).SetString(chainIDHex[2:], 16)
@@ -293,7 +290,7 @@ func (c *Client) ProcessTransaction(
 	}
 
 	if response.Error != nil {
-		return "", fmt.Errorf("RPC error: %d - %s\n", response.Error.Code, response.Error.Message)
+		return "", fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
 	var txHash string
@@ -358,14 +355,13 @@ func (c *Client) ProcessTransactionWithNativeSigning(
 	}
 
 	if response.Error != nil {
-		return "", fmt.Errorf("RPC error: %d - %s\n", response.Error.Code, response.Error.Message)
+		return "", fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
 	var txHash string
 	err = json.Unmarshal(response.Result, &txHash)
 	if err != nil {
 		return "", fmt.Errorf("error unmarshaling txHash value from response")
-
 	}
 
 	return txHash, nil
@@ -385,14 +381,13 @@ func (c *Client) GetBalance(ctx context.Context, address string) (string, error)
 	}
 
 	if response.Error != nil {
-		return "", fmt.Errorf("RPC error: %d - %s\n", response.Error.Code, response.Error.Message)
+		return "", fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
 	var balanceHex string
 	err = json.Unmarshal(response.Result, &balanceHex)
 	if err != nil {
 		return "", fmt.Errorf("error unmarshaling balance value from response")
-
 	}
 
 	return balanceHex, nil

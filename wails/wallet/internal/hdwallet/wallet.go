@@ -29,7 +29,11 @@ type masterAccount interface {
 	GetAllAccounts() (map[int]string, error)
 }
 
-type masterAccountFactory func(ctx context.Context, masterKey *bip32.Key, db *sql.DB, provider string) (masterAccount, error)
+type masterAccountFactory func(
+	ctx context.Context,
+	masterKey *bip32.Key,
+	db *sql.DB,
+	provider string) (masterAccount, error)
 
 var masterAccountFactories = map[string]masterAccountFactory{
 	"ETH": createETHAccount,
@@ -157,7 +161,12 @@ func validatePassword(ctx context.Context, publicKey *bip32.Key, password string
 	return err == nil
 }
 
-func (w *Wallet) CreateMasterAccount(ctx context.Context, password, token string, db *sql.DB, provider string) (masterAccount, error) {
+func (w *Wallet) CreateMasterAccount(
+	ctx context.Context,
+	password,
+	token string,
+	db *sql.DB,
+	provider string) (masterAccount, error) {
 	pubKeyData, err := w.publicKey.Serialize()
 	if err != nil {
 		return nil, fmt.Errorf("error serializing master public key: %w", err)
