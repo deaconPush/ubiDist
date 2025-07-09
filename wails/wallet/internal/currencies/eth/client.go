@@ -41,6 +41,19 @@ type RPCPayload struct {
 	ID      string        `json:"id"`
 }
 
+type RPCError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
+}
+
+type RPCResponse struct {
+	Jsonrpc string          `json:"jsonrpc"`
+	ID      string          `json:"id"`
+	Result  json.RawMessage `json:"result,omitempty"`
+	Error   *RPCError       `json:"error,omitempty"`
+}
+
 func NewClient(provider string) *Client {
 	return &Client{
 		ProviderURL: provider,
@@ -51,7 +64,7 @@ func (c *Client) SetProvider(provider string) {
 	c.ProviderURL = provider
 }
 
-func (c *Client) sendRequestToNode(ctx context.Context, payload RPCPayload) (map[string]interface{}, error) {
+func (c *Client) sendRequestToNode(ctx context.Context, payload RPCPayload) (*RPCResponse, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
@@ -76,12 +89,12 @@ func (c *Client) sendRequestToNode(ctx context.Context, payload RPCPayload) (map
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	response := map[string]interface{}{}
+	var response RPCResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
-	return response, nil
+	return &response, nil
 }
 
 func (c *Client) NetListening(ctx context.Context) bool {
@@ -93,12 +106,13 @@ func (c *Client) NetListening(ctx context.Context) bool {
 	}
 
 	response, err := c.sendRequestToNode(ctx, payload)
-	if err != nil {
+	if err != nil || response.Error != nil {
 		return false
 	}
 
-	isListening, ok := response["result"].(bool)
-	if !ok {
+	var isListening bool
+	err = json.Unmarshal(response.Result, &isListening)
+	if err != nil {
 		return false
 	}
 
@@ -117,9 +131,16 @@ func (c *Client) GetGasPrice(ctx context.Context) (*big.Int, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get gas price: %w", err)
 	}
-	gasPriceHex, ok := response["result"].(string)
-	if !ok {
-		return nil, fmt.Errorf("unexpected result type: expected string")
+
+	if response.Error != nil {
+		return nil, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
+	}
+
+	var gasPriceHex string
+
+	err = json.Unmarshal(response.Result, &gasPriceHex)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling gasPrice response")
 	}
 
 	gasPrice, _ := new(big.Int).SetString(gasPriceHex[2:], 16)
@@ -138,9 +159,15 @@ func (c *Client) GetNonce(ctx context.Context, address string) (uint64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to get nonce: %w", err)
 	}
-	nonceHex, ok := response["result"].(string)
-	if !ok {
-		return 0, fmt.Errorf("unexpected result type: expected string")
+
+	if response.Error != nil {
+		return 0, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
+	}
+
+	var nonceHex string
+	err = json.Unmarshal(response.Result, &nonceHex)
+	if err != nil {
+		return 0, fmt.Errorf("error unmarshaling nonce value from response")
 	}
 
 	nonce := new(big.Int)
@@ -167,9 +194,15 @@ func (c *Client) EstimateGas(ctx context.Context, from string, to string, value 
 	if err != nil {
 		return 0, fmt.Errorf("failed to estimate gas: %w", err)
 	}
-	gasLimitHex, ok := response["result"].(string)
-	if !ok {
-		return 0, fmt.Errorf("unexpected result type: expected string")
+
+	if response.Error != nil {
+		return 0, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
+	}
+
+	var gasLimitHex string
+	err = json.Unmarshal(response.Result, &gasLimitHex)
+	if err != nil {
+		return 0, fmt.Errorf("error unmarshaling gasLimit value from response")
 	}
 
 	gasLimit := new(big.Int)
@@ -190,11 +223,15 @@ func (c *Client) GetChainID(ctx context.Context) (int64, error) {
 		return -1, fmt.Errorf("failed to get chain ID: %w", err)
 	}
 
-	chainIDHex, ok := response["result"].(string)
-	if !ok {
-		return 0, fmt.Errorf("unexpected result type: expected string")
+	if response.Error != nil {
+		return 0, fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
 	}
 
+	var chainIDHex string
+	err = json.Unmarshal(response.Result, &chainIDHex)
+	if err != nil {
+		return 0, fmt.Errorf("error unmarshaling chainID value from response")
+	}
 	// Convert hex to int64
 	chainID, _ := new(big.Int).SetString(chainIDHex[2:], 16)
 	return chainID.Int64(), nil
@@ -251,9 +288,15 @@ func (c *Client) ProcessTransaction(
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
-	txHash, ok := response["result"].(string)
-	if !ok {
-		return "", fmt.Errorf("unexpected result type: expected string")
+
+	if response.Error != nil {
+		return "", fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
+	}
+
+	var txHash string
+	err = json.Unmarshal(response.Result, &txHash)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshaling txHash value from response")
 	}
 
 	return txHash, nil
@@ -310,9 +353,15 @@ func (c *Client) ProcessTransactionWithNativeSigning(
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %w", err)
 	}
-	txHash, ok := response["result"].(string)
-	if !ok {
-		return "", fmt.Errorf("unexpected result type: expected string")
+
+	if response.Error != nil {
+		return "", fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
+	}
+
+	var txHash string
+	err = json.Unmarshal(response.Result, &txHash)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshaling txHash value from response")
 	}
 
 	return txHash, nil
@@ -330,9 +379,15 @@ func (c *Client) GetBalance(ctx context.Context, address string) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("failed to get balance: %w", err)
 	}
-	balanceHex, ok := response["result"].(string)
-	if !ok {
-		return "", fmt.Errorf("unexpected result type: expected string")
+
+	if response.Error != nil {
+		return "", fmt.Errorf("rpc error: %d - %s", response.Error.Code, response.Error.Message)
+	}
+
+	var balanceHex string
+	err = json.Unmarshal(response.Result, &balanceHex)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshaling balance value from response")
 	}
 
 	return balanceHex, nil

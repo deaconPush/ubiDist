@@ -24,7 +24,12 @@ type MasterAccount struct {
 	accountDB *AccountStorage
 }
 
-func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, db *sql.DB) (*MasterAccount, error) {
+func NewETHAccount(
+	ctx context.Context,
+	masterKey *bip32.Key,
+	tokenName string,
+	db *sql.DB,
+	provider string) (*MasterAccount, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	accountDB, err := NewAccountStorage(dbCtx, db)
 	defer cancel()
@@ -41,7 +46,7 @@ func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, 
 	if !accountsExist {
 		var ethAccounts []string
 
-		for i := 0; i < 21; i++ {
+		for i := 0; i < 11; i++ {
 			ethKey, err := utils.DeriveKeyForAccount(masterKey, "ETH", i)
 			if err != nil {
 				return nil, fmt.Errorf("error deriving %s account %d: %w", tokenName, i, err)
@@ -60,7 +65,7 @@ func NewETHAccount(ctx context.Context, masterKey *bip32.Key, tokenName string, 
 		}
 	}
 
-	client := NewClient(providers[defaultNetwork])
+	client := NewClient(provider)
 	return &MasterAccount{
 		tokenName: tokenName,
 		client:    client,
@@ -99,7 +104,7 @@ func (a *MasterAccount) RetrieveBalance(accountIndex int) (string, error) {
 
 	balance, err := a.client.GetBalance(cliCtx, address)
 	if err != nil {
-		return "", fmt.Errorf("error retrieving balance: %w", err)
+		return "", fmt.Errorf("client error retrieving balance: %w", err)
 	}
 
 	return balance, nil

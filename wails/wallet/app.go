@@ -7,8 +7,6 @@ import (
 	"wallet/internal/hdwallet"
 	"wallet/internal/utils"
 
-	_ "modernc.org/sqlite"
-
 	"github.com/labstack/gommon/log"
 	"github.com/tyler-smith/go-bip39"
 )
@@ -60,14 +58,14 @@ func (a *App) ValidateMnemonic(mnemonic string) bool {
 	return bip39.IsMnemonicValid(mnemonic)
 }
 
-func (a *App) CreateWallet(tokens []string, password string) (string, error) {
+func (a *App) CreateWallet(tokens []string, password string, providers map[string]string) (string, error) {
 	wallet, mnemonic, err := hdwallet.CreateWallet(a.ctx, password, a.walletDB)
 	if err != nil {
 		return "", fmt.Errorf("error creating wallet: %w", err)
 	}
 
 	a.wallet = wallet
-	err = wallet.Initialize(tokens, password)
+	err = wallet.Initialize(tokens, password, providers)
 	if err != nil {
 		return "", fmt.Errorf("error initializing wallet: %w", err)
 	}
@@ -75,14 +73,14 @@ func (a *App) CreateWallet(tokens []string, password string) (string, error) {
 	return mnemonic, nil
 }
 
-func (a *App) RestoreWallet(tokens []string, password, mnemonic string) error {
+func (a *App) RestoreWallet(tokens []string, password, mnemonic string, providers map[string]string) error {
 	wallet, err := hdwallet.RestoreWallet(a.ctx, password, mnemonic, a.walletDB)
 	if err != nil {
 		return fmt.Errorf("error saving HDKey: %w", err)
 	}
 
 	a.wallet = wallet
-	err = wallet.Initialize(tokens, password)
+	err = wallet.Initialize(tokens, password, providers)
 	if err != nil {
 		return fmt.Errorf("error initializing wallet: %w", err)
 	}
@@ -90,14 +88,14 @@ func (a *App) RestoreWallet(tokens []string, password, mnemonic string) error {
 	return nil
 }
 
-func (a *App) RecoverWallet(tokens []string, password string) error {
+func (a *App) RecoverWallet(tokens []string, password string, providers map[string]string) error {
 	wallet, err := hdwallet.RecoverWallet(a.ctx, password, a.walletDB)
 	if err != nil {
 		return fmt.Errorf("error recovering wallet: %w", err)
 	}
 
 	a.wallet = wallet
-	err = wallet.Initialize(tokens, password)
+	err = wallet.Initialize(tokens, password, providers)
 	if err != nil {
 		return fmt.Errorf("error initializing wallet: %w", err)
 	}
