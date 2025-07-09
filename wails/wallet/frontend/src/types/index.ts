@@ -11,6 +11,11 @@ export type AccountMap = {
   [key: number]: string;
 };
 
+
+export type ProviderMap = {
+  [token: string]: string;
+};
+
 export type Transaction = {
   sender: string;
   recipient: string;
@@ -19,3 +24,4 @@ export type Transaction = {
   token: string;
   createdAt: string;
 };
+

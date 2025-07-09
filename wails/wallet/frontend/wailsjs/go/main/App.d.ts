@@ -3,7 +3,7 @@
 import {main} from '../models';
 import {hdwallet} from '../models';
 
-export function CreateWallet(arg1:Array<string>,arg2:string,arg3:string):Promise<string>;
+export function CreateWallet(arg1:Array<string>,arg2:string,arg3:{[key: string]: string}):Promise<string>;
 
 export function EstimateGas(arg1:string,arg2:string,arg3:string,arg4:number):Promise<string>;
 
@@ -11,9 +11,9 @@ export function GetAssets(arg1:{[key: string]: number}):Promise<{[key: string]: 
 
 export function GetTransactions():Promise<Array<hdwallet.WalletTransaction>>;
 
-export function RecoverWallet(arg1:Array<string>,arg2:string,arg3:string):Promise<void>;
+export function RecoverWallet(arg1:Array<string>,arg2:string,arg3:{[key: string]: string}):Promise<void>;
 
-export function RestoreWallet(arg1:Array<string>,arg2:string,arg3:string,arg4:string):Promise<void>;
+export function RestoreWallet(arg1:Array<string>,arg2:string,arg3:string,arg4:{[key: string]: string}):Promise<void>;
 
 export function SendTransaction(arg1:string,arg2:string,arg3:string,arg4:string,arg5:number):Promise<boolean>;
 

@@ -4,7 +4,7 @@
   import CreatePassword from '../components/CreatePassword.svelte';
   import ShowSeed from '../components/ShowSeed.svelte';
   import ConfirmSeed from '../components/ConfirmSeed.svelte';
-  import { currentView, availableTokens } from '../stores';
+  import { currentView, availableTokens, selectedProviders } from '../stores';
 
   let currentStep: number = 0;
   let seedPhraseList: string[] = [];
@@ -25,7 +25,7 @@
     }
 
     const password: string = passwordInput.value;
-    CreateWallet($availableTokens, password, "http://localhost:8545")
+    CreateWallet($availableTokens, password,  $selectedProviders)
       .then((data) => {
         seedPhraseList = data.split(' ');
         nextStep();

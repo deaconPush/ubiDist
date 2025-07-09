@@ -3,7 +3,7 @@
   import ProgressBar from '../components/ProgressBar.svelte';
   import SeedRecovery from '../components/SeedRecovery.svelte';
   import CreatePassword from '../components/CreatePassword.svelte';
-  import { currentView, availableTokens } from '../stores';
+  import { currentView, availableTokens, selectedProviders } from '../stores';
 
   let seedPhrase: string = '';
   let seedPhraseBlocks: number = 12;
@@ -24,7 +24,7 @@
     }
 
     const password = passwordInput.value;
-    RestoreWallet($availableTokens, password, seedPhrase, "http://localhost:8545")
+    RestoreWallet($availableTokens, password, seedPhrase, $selectedProviders)
       .then(() => {
         currentView.set('Home');
       })

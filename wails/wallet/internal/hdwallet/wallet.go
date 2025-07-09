@@ -133,8 +133,9 @@ func storeMasterKey(ctx context.Context, ws *WalletStorage, password string, mas
 	return nil
 }
 
-func (w *Wallet) Initialize(tokens []string, password string, provider string) error {
+func (w *Wallet) Initialize(tokens []string, password string, providers map[string]string) error {
 	for _, token := range tokens {
+		provider := providers[token]
 		account, err := w.CreateMasterAccount(w.ctx, password, token, w.walletDB.db, provider)
 		if err != nil {
 			return fmt.Errorf("error creating %s account: %w", token, err)

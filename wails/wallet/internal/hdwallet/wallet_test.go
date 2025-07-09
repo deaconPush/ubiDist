@@ -38,6 +38,9 @@ func TestHDWallet(t *testing.T) {
 	endpoint, err := hardhatC.Endpoint(ctx, "")
 	require.NoError(t, err)
 	endpoint = "http://" + endpoint
+	providers := map[string]string{
+		"ETH": endpoint,
+	}
 	// Initialize in-memory wallet storage
 	ws, err := hdwallet.NewWalletStorage(ctx, ":memory:")
 	require.NoError(t, err)
@@ -59,7 +62,7 @@ func TestHDWallet(t *testing.T) {
 		wallet, err := hdwallet.RestoreWallet(ctx, defaultPassword, defaultMnemonic, ws)
 		require.NoError(t, err)
 		// Initialize ETH account
-		err = wallet.Initialize(tokens, defaultPassword, endpoint)
+		err = wallet.Initialize(tokens, defaultPassword, providers)
 		require.NoError(t, err)
 		// Check initial balance
 		initialBalance, err := wallet.GetBalance(operationsToken, firstAccountIndex)
@@ -92,7 +95,7 @@ func TestHDWallet(t *testing.T) {
 
 	t.Run("Test wallet recovery and operations", func(t *testing.T) {
 		var firstAcctPreviousBalance = 9469.999961
-		var sixthAcctPreviousBalance = 10530
+		var sixthAcctPreviousBalance = 10530.00000
 		tokens := []string{"ETH"}
 		operationsToken := "ETH"
 		firstAccountIndex := 0
@@ -100,7 +103,7 @@ func TestHDWallet(t *testing.T) {
 		wallet, err := hdwallet.RecoverWallet(ctx, defaultPassword, ws)
 		require.NoError(t, err)
 		// Initialize ETH account
-		err = wallet.Initialize(tokens, defaultPassword, endpoint)
+		err = wallet.Initialize(tokens, defaultPassword, providers)
 		require.NoError(t, err)
 		// check balance of 0th and 6th accountRecoverWallet
 		firstAccBalance, err := wallet.GetBalance(operationsToken, firstAccountIndex)
@@ -133,10 +136,10 @@ func TestHDWallet(t *testing.T) {
 		wallet, err := hdwallet.RestoreWallet(ctx, defaultPassword, defaultMnemonic, newWs)
 		require.NoError(t, err)
 		// Initialize wallet with unsupported token
-		err = wallet.Initialize(unsupportedTokens, defaultPassword, endpoint)
+		err = wallet.Initialize(unsupportedTokens, defaultPassword, providers)
 		require.Error(t, err)
 		// Initialize wallet with invalid password
-		err = wallet.Initialize(tokens, defaultWrongPwd, endpoint)
+		err = wallet.Initialize(tokens, defaultWrongPwd, providers)
 		require.Error(t, err)
 		newWs.Close()
 	})
@@ -151,7 +154,7 @@ func TestHDWallet(t *testing.T) {
 		wallet, err := hdwallet.RecoverWallet(ctx, defaultPassword, ws)
 		require.NoError(t, err)
 		// Initialize ETH account
-		err = wallet.Initialize(tokens, defaultPassword, endpoint)
+		err = wallet.Initialize(tokens, defaultPassword, providers)
 		require.NoError(t, err)
 		// Send transaction with invalid pwd
 		_, err = wallet.SendTransaction(operationsToken, defaultWrongPwd, to, transferAmount, senderAccountIndex)
@@ -173,7 +176,7 @@ func TestHDWallet(t *testing.T) {
 		wallet, err := hdwallet.RecoverWallet(ctx, defaultPassword, ws)
 		require.NoError(t, err)
 		// Initialize ETH account
-		err = wallet.Initialize(tokens, defaultPassword, endpoint)
+		err = wallet.Initialize(tokens, defaultPassword, providers)
 		require.NoError(t, err)
 		// Attempt to send transaction
 		_, err = wallet.SendTransaction(operationsToken, defaultPassword, to, transferAmount, senderAccountIndex)
@@ -200,7 +203,7 @@ func TestHDWallet(t *testing.T) {
 		wallet, err := hdwallet.RecoverWallet(ctx, defaultPassword, ws)
 		require.NoError(t, err)
 		// Initialize ETH account
-		err = wallet.Initialize(tokens, defaultPassword, endpoint)
+		err = wallet.Initialize(tokens, defaultPassword, providers)
 		require.NoError(t, err)
 		accounts, err := wallet.GetAllAccounts(operationsToken)
 		require.NoError(t, err)
@@ -220,7 +223,7 @@ func TestHDWallet(t *testing.T) {
 		require.NotEmpty(t, mnemonic)
 		require.NoError(t, err)
 		// Initialize ETH account
-		err = wallet.Initialize(tokens, defaultPassword, endpoint)
+		err = wallet.Initialize(tokens, defaultPassword, providers)
 		require.NoError(t, err)
 		// Retrieve balance
 		balance, err := wallet.GetBalance(operationsToken, firstAccountIndex)

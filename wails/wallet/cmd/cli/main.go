@@ -51,7 +51,7 @@ func GetBalance(wallet *hdwallet.Wallet, token string) (string, error) {
 	return balanceStr, nil
 }
 
-func createWalletCmd(scanner *bufio.Scanner, tokens []string, provider string) (*hdwallet.Wallet, error) {
+func createWalletCmd(scanner *bufio.Scanner, tokens []string, providers map[string]string) (*hdwallet.Wallet, error) {
 	fmt.Fprintln(os.Stdout, "Enter password: ")
 	if !scanner.Scan() {
 		return nil, fmt.Errorf("failed to read password input")
@@ -64,7 +64,7 @@ func createWalletCmd(scanner *bufio.Scanner, tokens []string, provider string) (
 		return nil, err
 	}
 
-	err = wallet.Initialize(tokens, password, provider)
+	err = wallet.Initialize(tokens, password, providers)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error initializing wallet:", err)
 		return nil, err
@@ -74,7 +74,7 @@ func createWalletCmd(scanner *bufio.Scanner, tokens []string, provider string) (
 	return wallet, nil
 }
 
-func restoreWalletCmd(scanner *bufio.Scanner, tokens []string, provider string) (*hdwallet.Wallet, error) {
+func restoreWalletCmd(scanner *bufio.Scanner, tokens []string, providers map[string]string) (*hdwallet.Wallet, error) {
 	fmt.Fprintln(os.Stdout, "Enter password: ")
 	if !scanner.Scan() {
 		return nil, fmt.Errorf("failed to read password")
@@ -95,7 +95,7 @@ func restoreWalletCmd(scanner *bufio.Scanner, tokens []string, provider string) 
 		return nil, err
 	}
 
-	err = wallet.Initialize(tokens, password, provider)
+	err = wallet.Initialize(tokens, password, providers)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error initializing wallet:", err)
 		return nil, err
@@ -135,10 +135,14 @@ func checkBalanceCmd(ctx context.Context, scanner *bufio.Scanner, wallet *hdwall
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	tokens := []string{"ETH"}
+	providers := map[string]string{
+		"ETH": "http://localhost:8545",
+	}
 	var wallet *hdwallet.Wallet
 	var err error
 	cliCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	client := eth.NewClient("http://localhost:8545")
+
 	defer cancel()
 
 	for {
@@ -147,12 +151,12 @@ func main() {
 		command := scanner.Text()
 		switch command {
 		case "create-wallet":
-			wallet, err = createWalletCmd(scanner, tokens, "http://localhost:8545")
+			wallet, err = createWalletCmd(scanner, tokens, providers)
 			if err != nil {
 				break
 			}
 		case "restore-wallet":
-			wallet, err = restoreWalletCmd(scanner, tokens, "http://localhost:8545")
+			wallet, err = restoreWalletCmd(scanner, tokens, providers)
 			if err != nil {
 				break
 			}
